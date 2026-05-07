@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RR_SHOEES - Coleção 2026</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+    body { background: #0a0a0a; font-family: 'Inter', sans-serif; }
+    .font-display { font-family: 'Playfair Display', serif; }
+    .hero-bg { background: linear-gradient(to right, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.3) 100%), url('https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1920&auto=format&fit=crop'); background-size: cover; background-position: center 30%; }
+    .btn-gold { background: linear-gradient(135deg, #c9a227, #d4af37); color: #0a0a0a; font-weight: 700; transition: all 0.4s ease; cursor: pointer; border: none; }
+    .btn-gold:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(212,175,55,0.4); }
+    .card-produto { background: #111; border: 1px solid #222; transition: all 0.4s ease; cursor: pointer; }
+    .card-produto:hover { border-color: #d4af37; transform: translateY(-8px); box-shadow: 0 20px 50px rgba(212,175,55,0.15); }
+    .card-produto img { transition: transform 0.6s ease; }
+    .card-produto:hover img { transform: scale(1.08); }
+    .toast { position: fixed; bottom: 30px; right: 30px; background: #d4af37; color: #000; padding: 16px 28px; border-radius: 50px; z-index: 9999; font-weight: 700; opacity: 0; transform: translateY(20px); transition: all 0.4s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .filtro-ativo { background: #d4af37 !important; color: #000 !important; font-weight: 700 !important; border: none !important; }
+    
+    /* Mobile menu */
+    .mobile-menu { display: none; }
+    .mobile-menu.open { display: flex; }
+    
+    @media (max-width: 768px) {
+      .desktop-nav { display: none !important; }
+      .mobile-menu-btn { display: block !important; }
+    }
+    @media (min-width: 769px) {
+      .mobile-menu-btn { display: none !important; }
+    }
+  </style>
+</head>
+<body class="text-white">
+
+  <!-- MOBILE MENU BUTTON -->
+  <button onclick="toggleMobileMenu()" class="mobile-menu-btn fixed top-4 right-4 z-50 bg-[#d4af37] text-black w-10 h-10 rounded-full text-xl" style="display:none;">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <!-- MOBILE MENU -->
+  <div id="mobile-menu" class="mobile-menu fixed inset-0 bg-black/95 z-40 flex-col items-center justify-center gap-8 text-xl">
+    <button onclick="toggleMobileMenu()" class="absolute top-4 right-4 text-3xl text-white">&times;</button>
+    <a href="index.html" class="text-[#d4af37] font-bold" onclick="toggleMobileMenu()">INÍCIO</a>
+    <a href="#" onclick="filtrar('Masculino');toggleMobileMenu()" class="text-white">MASCULINO</a>
+    <a href="#" onclick="filtrar('Feminino');toggleMobileMenu()" class="text-white">FEMININO</a>
+    <a href="#" onclick="filtrar('Lançamento');toggleMobileMenu()" class="text-white">LANÇAMENTOS</a>
+    <a href="#" onclick="filtrar('all');toggleMobileMenu()" class="text-white">TODOS</a>
+    <a href="pages/login.html" class="text-white"><i class="far fa-user mr-2"></i> CONTA</a>
+    <a href="checkout.html" class="text-white"><i class="fas fa-shopping-cart mr-2"></i> CARRINHO <span id="cart-count-mobile" class="bg-[#d4af37] text-black px-2 py-1 rounded-full text-sm">0</span></a>
+  </div>
+
+  <!-- HERO -->
+  <section class="w-full min-h-[100svh] hero-bg flex flex-col">
+    <header class="flex items-center justify-between px-4 md:px-16 py-4 md:py-6 border-b border-white/5">
+      <a href="index.html" class="text-xl md:text-3xl font-bold tracking-widest font-display">RR<span class="text-[#d4af37]">_</span>SHOEES</a>
+      
+      <!-- Desktop Nav -->
+      <nav class="desktop-nav hidden md:flex gap-6 lg:gap-8 text-xs uppercase tracking-wider">
+        <a href="index.html" class="text-[#d4af37] font-semibold">Início</a>
+        <a href="#" onclick="filtrar('Masculino')" class="text-gray-300 hover:text-[#d4af37] transition">Masculino</a>
+        <a href="#" onclick="filtrar('Feminino')" class="text-gray-300 hover:text-[#d4af37] transition">Feminino</a>
+        <a href="#" onclick="filtrar('Lançamento')" class="text-gray-300 hover:text-[#d4af37] transition">Lançamentos</a>
+        <a href="#" onclick="filtrar('all')" class="text-gray-300 hover:text-[#d4af37] transition">Todos</a>
+      </nav>
+
+      <div class="hidden md:flex gap-5 text-xl items-center">
+        <a href="pages/login.html" class="hover:text-[#d4af37] transition"><i class="far fa-user"></i></a>
+        <a href="checkout.html" class="relative hover:text-[#d4af37] transition">
+          <i class="fas fa-shopping-cart"></i>
+          <span id="cart-count" class="absolute -top-2 -right-3 bg-[#d4af37] text-black text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">0</span>
+        </a>
+      </div>
+    </header>
+
+    <div class="flex items-center flex-1 px-4 md:px-16">
+      <div class="max-w-2xl">
+        <p class="text-[#d4af37] text-xs md:text-sm uppercase tracking-[4px] mb-4 md:mb-6 font-semibold">Coleção 2026</p>
+        <h2 class="text-4xl md:text-5xl lg:text-7xl font-extrabold leading-tight mb-4 md:mb-6 font-display">SEU ESTILO.<br/><span class="text-[#d4af37]">SUAS REGRAS.</span></h2>
+        <p class="text-lg md:text-xl lg:text-2xl text-gray-300 mb-8 md:mb-10 font-light">Os melhores tênis<br/>você encontra aqui.</p>
+        <button onclick="document.getElementById('produtos').scrollIntoView({behavior:'smooth'})" class="btn-gold px-8 md:px-10 py-3 md:py-4 rounded-lg text-base md:text-lg font-bold">VER COLEÇÃO</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRODUTOS -->
+  <section class="py-12 md:py-20 px-4 md:px-16" id="produtos">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-10 md:mb-16">
+        <p class="text-[#d4af37] text-xs md:text-sm uppercase tracking-[4px] mb-3 md:mb-4 font-semibold">Coleção 2026</p>
+        <h3 class="text-3xl md:text-5xl font-bold font-display">LANÇAMENTOS</h3>
+        <p class="text-gray-500 mt-3 md:mt-4 text-sm md:text-base">Os mais desejados da temporada</p>
+      </div>
+
+      <!-- FILTROS -->
+      <!-- FILTROS AVANÇADOS -->
+      <div class="flex justify-center mb-6">
+        <button onclick="toggleFiltros()" class="px-6 py-3 rounded-full border border-white/10 text-gray-400 hover:text-[#d4af37] hover:border-[#d4af37] text-sm transition-all">
+          <i class="fas fa-sliders-h mr-2"></i>Filtros Avançados
+        </button>
+      </div>
+      <div id="painel-filtros" class="hidden max-w-7xl mx-auto mb-8 bg-[#111] rounded-2xl p-6 border border-white/5 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <h4 class="font-bold text-sm mb-3">💰 Faixa de Preço</h4>
+          <div class="flex gap-2 items-center">
+            <input type="number" id="filtro-preco-min" class="input-dark" placeholder="Min" onchange="aplicarFiltros()">
+            <span class="text-gray-400">até</span>
+            <input type="number" id="filtro-preco-max" class="input-dark" placeholder="Max" onchange="aplicarFiltros()">
+          </div>
+        </div>
+        <div>
+          <h4 class="font-bold text-sm mb-3">🎨 Cores</h4>
+          <div id="filtro-cores" class="flex flex-wrap gap-2"></div>
+        </div>
+        <div>
+          <h4 class="font-bold text-sm mb-3">📏 Tamanhos</h4>
+          <div id="filtro-tamanhos" class="flex flex-wrap gap-2"></div>
+        </div>
+      </div>
+      <div class="flex gap-2 md:gap-3 justify-center flex-wrap mb-8 md:mb-12">
+        <button onclick="filtrar('all')" id="filtro-all" class="filtro-ativo px-4 md:px-6 py-2 md:py-3 rounded-full text-xs md:text-sm transition-all">TODOS</button>
+        <button onclick="filtrar('Lançamento')" id="filtro-Lançamento" class="px-4 md:px-6 py-2 md:py-3 rounded-full border border-white/10 text-gray-400 hover:text-[#d4af37] hover:border-[#d4af37] text-xs md:text-sm transition-all">LANÇAMENTOS</button>
+        <button onclick="filtrar('Masculino')" id="filtro-Masculino" class="px-4 md:px-6 py-2 md:py-3 rounded-full border border-white/10 text-gray-400 hover:text-[#d4af37] hover:border-[#d4af37] text-xs md:text-sm transition-all">MASCULINO</button>
+        <button onclick="filtrar('Feminino')" id="filtro-Feminino" class="px-4 md:px-6 py-2 md:py-3 rounded-full border border-white/10 text-gray-400 hover:text-[#d4af37] hover:border-[#d4af37] text-xs md:text-sm transition-all">FEMININO</button>
+        <button onclick="filtrar('Casual')" id="filtro-Casual" class="px-4 md:px-6 py-2 md:py-3 rounded-full border border-white/10 text-gray-400 hover:text-[#d4af37] hover:border-[#d4af37] text-xs md:text-sm transition-all">CASUAL</button>
+      </div>
+
+      <!-- FILTROS AVANÇADOS -->
+      <div class="max-w-7xl mx-auto mb-8 px-4 md:px-0">
+        <button onclick="toggleFiltros()" class="px-6 py-3 rounded-full border border-white/10 text-gray-400 hover:text-[#d4af37] hover:border-[#d4af37] text-sm transition-all">
+          <i class="fas fa-sliders-h mr-2"></i>Filtros Avançados
+        </button>
+        <div id="painel-filtros" class="hidden mt-6 bg-[#111] rounded-2xl p-6 border border-white/5 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <h4 class="font-bold text-sm mb-3">💰 Faixa de Preço</h4>
+            <div class="flex gap-2 items-center">
+              <input type="number" id="filtro-preco-min" class="input-dark" placeholder="Min" onchange="aplicarFiltros()">
+              <span class="text-gray-400">até</span>
+              <input type="number" id="filtro-preco-max" class="input-dark" placeholder="Max" onchange="aplicarFiltros()">
+            </div>
+          </div>
+          <div>
+            <h4 class="font-bold text-sm mb-3">🎨 Cores</h4>
+            <div id="filtro-cores" class="flex flex-wrap gap-2"></div>
+          </div>
+          <div>
+            <h4 class="font-bold text-sm mb-3">📏 Tamanhos</h4>
+            <div id="filtro-tamanhos" class="flex flex-wrap gap-2"></div>
+          </div>
+        </div>
+      </div>
+      <!-- GRADE DE PRODUTOS -->
+      <div id="produtos-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 lg:gap-8"></div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="py-10 md:py-16 px-4 md:px-16 bg-[#0a0a0a] border-t border-white/5">
+    <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10 text-xs md:text-sm">
+      <div class="col-span-2 md:col-span-1"><h4 class="text-lg md:text-xl font-bold font-display mb-3 md:mb-4">RR<span class="text-[#d4af37]">_</span>SHOEES</h4><p class="text-gray-500">Transformando passos em estilo.</p></div>
+      <div><h5 class="font-bold mb-3 md:mb-4 uppercase tracking-wider text-xs">Institucional</h5><ul class="space-y-2 text-gray-400"><li><a href="#" class="hover:text-[#d4af37] transition">Sobre Nós</a></li><li><a href="#" class="hover:text-[#d4af37] transition">Privacidade</a></li></ul></div>
+      <div><h5 class="font-bold mb-3 md:mb-4 uppercase tracking-wider text-xs">Atendimento</h5><ul class="space-y-2 text-gray-400"><li>📧 contact@rrshoes.com.br</li><li>📞 (11) 99999-9999</li></ul></div>
+      <div><h5 class="font-bold mb-3 md:mb-4 uppercase tracking-wider text-xs">Pagamento</h5><p class="text-gray-400">💳 Cartão | 📱 PIX | 📄 Boleto</p></div>
+    </div>
+    <div class="text-center mt-8 md:mt-12 pt-6 md:pt-8 border-t border-white/5 text-gray-600 text-xs"><p>&copy; 2026 RR_SHOEES.</p></div>
+  </footer>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="js/produtos.js"></script>
+  <script>
+    let categoriaAtual = 'all';
+    let carrinho = JSON.parse(localStorage.getItem('rrshoes_cart')) || [];
+
+    function toggleMobileMenu() {
+      document.getElementById('mobile-menu').classList.toggle('open');
+    }
+
+    function filtrar(cat) {
+      categoriaAtual = cat;
+      document.querySelectorAll('[id^="filtro-"]').forEach(btn => {
+        btn.classList.remove('filtro-ativo');
+        btn.classList.add('border', 'border-white/10', 'text-gray-400');
+      });
+      const btnAtivo = document.getElementById('filtro-' + cat);
+      if (btnAtivo) {
+        btnAtivo.classList.add('filtro-ativo');
+        btnAtivo.classList.remove('border', 'border-white/10', 'text-gray-400');
+      }
+      renderizar();
+    }
+
+    function renderizar(listaProdutos = null) {
+      const container = document.getElementById('produtos-container');
+      const todos = getTodosProdutos();
+      if (!listaProdutos) { lista = categoriaAtual === "all" ? todos : todos.filter(p => p.categoria === categoriaAtual); } else { lista = listaProdutos; }
+
+      if (lista.length === 0) {
+        container.innerHTML = '<div class="col-span-full text-center py-16 md:py-20"><p class="text-gray-500 text-base md:text-lg">Nenhum produto nesta categoria</p><p class="text-gray-600 text-xs md:text-sm mt-2">Tente "Todos" ou adicione produtos no painel admin.</p></div>';
+        return;
+      }
+
+      container.innerHTML = lista.map(p => {
+        const preco = p.preco_promo || p.preco;
+        const temDesconto = p.preco_promo && p.preco_promo < p.preco;
+        const desconto = temDesconto ? Math.round(((p.preco - p.preco_promo) / p.preco) * 100) : 0;
+        const estrelas = '★'.repeat(Math.floor(p.avaliacao || 5));
+
+        return `
+          <div class="card-produto rounded-xl md:rounded-2xl overflow-hidden group" onclick="window.location.href='produto.html?id=${p.id}'">
+            <div class="relative overflow-hidden aspect-square bg-[#1a1a1a]">
+              <img src="${p.imagem_principal}" alt="${p.nome}" class="w-full h-full object-cover" loading="lazy" onerror="this.src='https://via.placeholder.com/400x400/1a1a1a/fff?text=RR'">
+              ${temDesconto ? `<span class="absolute top-2 left-2 md:top-4 md:left-4 bg-[#d4af37] text-black px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-bold">-${desconto}%</span>` : ''}
+              <button class="absolute top-2 right-2 md:top-4 md:right-4 w-8 h-8 md:w-10 md:h-10 bg-black/50 backdrop-blur rounded-full flex items-center justify-center hover:bg-[#d4af37] transition" onclick="event.stopPropagation(); addCarrinho(${p.id})">
+                <i class="fas fa-shopping-cart text-xs md:text-sm"></i>
+              </button>
+            </div>
+            <div class="p-3 md:p-5">
+              <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider mb-0.5 md:mb-1">${p.categoria}</p>
+              <h4 class="font-bold text-sm md:text-lg mb-1 md:mb-2 group-hover:text-[#d4af37] transition line-clamp-2">${p.nome}</h4>
+              <div class="text-[#d4af37] text-[10px] md:text-xs mb-1 md:mb-2">${estrelas} <span class="text-gray-500">(${p.num_avaliacoes || 0})</span></div>
+              <div class="flex items-center gap-2 md:gap-3 flex-wrap">
+                <span class="text-lg md:text-2xl font-bold text-[#d4af37]">R$ ${preco.toFixed(2)}</span>
+                ${temDesconto ? `<span class="text-xs md:text-sm text-gray-500 line-through">R$ ${p.preco.toFixed(2)}</span>` : ''}
+              </div>
+              <p class="text-[10px] md:text-xs text-gray-500 mt-1 md:mt-2">ou 6x de R$ ${(preco/6).toFixed(2)}</p>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function addCarrinho(id) {
+      const p = getProdutoPorId(id);
+      if (!p) return;
+      const existente = carrinho.find(i => i.id === id);
+      existente ? existente.quantity++ : carrinho.push({ id: p.id, nome: p.nome, preco: p.preco_promo || p.preco, imagem: p.imagem_principal, size: 40, color: 'Padrão', quantity: 1 });
+      localStorage.setItem('rrshoes_cart', JSON.stringify(carrinho));
+      atualizarContador();
+      mostrarToast('✅ Adicionado!');
+    }
+
+    function atualizarContador() {
+      const count = carrinho.reduce((s, i) => s + i.quantity, 0);
+      const el = document.getElementById('cart-count');
+      const elMobile = document.getElementById('cart-count-mobile');
+      if (el) el.textContent = count;
+      if (elMobile) elMobile.textContent = count;
+    }
+
+    function mostrarToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderizar();
+      atualizarContador();
+      console.log('📦 Total produtos:', getTodosProdutos().length);
+    });
+  // ===== FILTROS AVANÇADOS =====
+  function toggleFiltros() {
+    document.getElementById("painel-filtros").classList.toggle("hidden");
+    if (!document.getElementById("painel-filtros").classList.contains("hidden")) {
+      carregarOpcoesFiltros();
+    }
+  }
+  function carregarOpcoesFiltros() {
+    const todos = getTodosProdutos();
+    const coresSet = new Set();
+    const tamanhosSet = new Set();
+    todos.forEach(p => {
+      if (p.cores) {
+        (Array.isArray(p.cores) ? p.cores : JSON.parse(p.cores || "[]")).forEach(c => coresSet.add(c));
+      }
+      if (p.tamanhos) {
+        (Array.isArray(p.tamanhos) ? p.tamanhos : JSON.parse(p.tamanhos || "[]")).forEach(t => tamanhosSet.add(t));
+      }
+    });
+    const coresDiv = document.getElementById("filtro-cores");
+    coresDiv.innerHTML = [...coresSet].map(c => `<label class="flex items-center gap-1 text-xs text-gray-400"><input type="checkbox" value="${c}" onchange="aplicarFiltros()" class="accent-[#d4af37]"> ${c}</label>`).join("");
+    const tamanhosDiv = document.getElementById("filtro-tamanhos");
+    tamanhosDiv.innerHTML = [...tamanhosSet].sort((a,b)=>a-b).map(t => `<label class="flex items-center gap-1 text-xs text-gray-400"><input type="checkbox" value="${t}" onchange="aplicarFiltros()" class="accent-[#d4af37]"> ${t}</label>`).join("");
+  }
+  function aplicarFiltros() {
+    const min = parseFloat(document.getElementById("filtro-preco-min").value) || 0;
+    const max = parseFloat(document.getElementById("filtro-preco-max").value) || Infinity;
+    const coresSelecionadas = [...document.querySelectorAll("#filtro-cores input:checked")].map(cb => cb.value);
+    const tamanhosSelecionados = [...document.querySelectorAll("#filtro-tamanhos input:checked")].map(cb => cb.value);
+    
+    let lista = getTodosProdutos().filter(p => {
+      const preco = p.preco_promo || p.preco;
+      if (preco < min || preco > max) return false;
+      if (coresSelecionadas.length > 0) {
+        const coresProduto = Array.isArray(p.cores) ? p.cores : JSON.parse(p.cores || "[]");
+        if (!coresSelecionadas.some(c => coresProduto.includes(c))) return false;
+      }
+      if (tamanhosSelecionados.length > 0) {
+        const tamanhosProduto = Array.isArray(p.tamanhos) ? p.tamanhos : JSON.parse(p.tamanhos || "[]");
+        if (!tamanhosSelecionados.some(t => tamanhosProduto.includes(parseInt(t)))) return false;
+      }
+      return true;
+    });
+    if (categoriaAtual !== "all") {
+      lista = lista.filter(p => p.categoria === categoriaAtual);
+    }
+    renderizarLista(lista);
+  }
+
+  // ===== FILTROS AVANÇADOS =====
+  function toggleFiltros() {
+    document.getElementById('painel-filtros').classList.toggle('hidden');
+    if (!document.getElementById('painel-filtros').classList.contains('hidden')) {
+      carregarOpcoesFiltros();
+    }
+  }
+  function carregarOpcoesFiltros() {
+    const todos = getTodosProdutos();
+    const coresSet = new Set();
+    const tamanhosSet = new Set();
+    todos.forEach(p => {
+      let cores = p.cores;
+      if (typeof cores === 'string') cores = JSON.parse(cores);
+      if (Array.isArray(cores)) cores.forEach(c => coresSet.add(c));
+      let tamanhos = p.tamanhos;
+      if (typeof tamanhos === 'string') tamanhos = JSON.parse(tamanhos);
+      if (Array.isArray(tamanhos)) tamanhos.forEach(t => tamanhosSet.add(t));
+    });
+    document.getElementById('filtro-cores').innerHTML = [...coresSet].map(c => `<label class="flex items-center gap-1 text-xs text-gray-400"><input type="checkbox" value="${c}" onchange="aplicarFiltros()" class="accent-[#d4af37]"> ${c}</label>`).join('');
+    document.getElementById('filtro-tamanhos').innerHTML = [...tamanhosSet].sort((a,b)=>a-b).map(t => `<label class="flex items-center gap-1 text-xs text-gray-400"><input type="checkbox" value="${t}" onchange="aplicarFiltros()" class="accent-[#d4af37]"> ${t}</label>`).join('');
+  }
+  function aplicarFiltros() {
+    const min = parseFloat(document.getElementById('filtro-preco-min').value) || 0;
+    const max = parseFloat(document.getElementById('filtro-preco-max').value) || Infinity;
+    const coresSel = [...document.querySelectorAll('#filtro-cores input:checked')].map(cb => cb.value);
+    const tamanhosSel = [...document.querySelectorAll('#filtro-tamanhos input:checked')].map(cb => cb.value);
+    let lista = getTodosProdutos().filter(p => {
+      const preco = p.preco_promo || p.preco;
+      if (preco < min || preco > max) return false;
+      if (coresSel.length) {
+        let cores = p.cores; if (typeof cores === 'string') cores = JSON.parse(cores);
+        if (!cores || !cores.some(c => coresSel.includes(c))) return false;
+      }
+      if (tamanhosSel.length) {
+        let tamanhos = p.tamanhos; if (typeof tamanhos === 'string') tamanhos = JSON.parse(tamanhos);
+        if (!tamanhos || !tamanhos.some(t => tamanhosSel.includes(t.toString()))) return false;
+      }
+      return true;
+    });
+    if (categoriaAtual !== 'all') lista = lista.filter(p => p.categoria === categoriaAtual);
+    renderizarLista(lista);
+  }
+  // Sobrescrever renderizar para aceitar lista
+  const originalRenderizar = renderizar;
+  renderizar = function(listaProdutos = null) {
+    if (listaProdutos) {
+      renderizarLista(listaProdutos);
+      return;
+    }
+    originalRenderizar();
+  };
+  function renderizarLista(lista) {
+    const container = document.getElementById('produtos-container');
+    if (lista.length === 0) {
+      container.innerHTML = '<div class="col-span-full text-center py-20"><p class="text-gray-500 text-lg">Nenhum produto encontrado</p></div>';
+      return;
+    }
+    container.innerHTML = lista.map(p => {
+      const preco = p.preco_promo || p.preco;
+      const temDesconto = p.preco_promo && p.preco_promo < p.preco;
+      const desconto = temDesconto ? Math.round(((p.preco - p.preco_promo) / p.preco) * 100) : 0;
+      const estrelas = '★'.repeat(Math.floor(p.avaliacao || 5));
+      const quaseEsgotando = p.estoque <= 5 && p.estoque > 0;
+      return `<div class="card-produto rounded-2xl overflow-hidden cursor-pointer group" onclick="window.location.href='produto.html?id=${p.id}'">
+        <div class="relative overflow-hidden aspect-square bg-[#1a1a1a]">
+          <img src="${p.imagem_principal}" alt="${p.nome}" class="w-full h-full object-cover" loading="lazy" decoding="async" onerror="this.src='https://via.placeholder.com/400x400/1a1a1a/fff?text=RR'">
+          ${temDesconto ? `<span class="absolute top-4 left-4 bg-[#d4af37] text-black px-3 py-1 rounded-full text-xs font-bold">-${desconto}%</span>` : ''}
+          ${quaseEsgotando ? `<span class="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold">Últimas!</span>` : ''}
+          <button class="absolute top-4 right-4 w-10 h-10 bg-black/50 backdrop-blur rounded-full flex items-center justify-center hover:bg-[#d4af37] transition" onclick="event.stopPropagation(); addCarrinho(${p.id})">
+            <i class="fas fa-shopping-cart text-sm"></i>
+          </button>
+        </div>
+        <div class="p-5">
+          <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">${p.categoria}</p>
+          <h4 class="font-bold text-lg mb-2 group-hover:text-[#d4af37] transition">${p.nome}</h4>
+          <div class="text-[#d4af37] text-xs mb-2">${estrelas} <span class="text-gray-500">(${p.num_avaliacoes || 0})</span></div>
+          <div class="flex items-center gap-3">
+            <span class="text-2xl font-bold text-[#d4af37]">R$ ${preco.toFixed(2)}</span>
+            ${temDesconto ? `<span class="text-sm text-gray-500 line-through">R$ ${p.preco.toFixed(2)}</span>` : ''}
+          </div>
+          <p class="text-xs text-gray-500 mt-2">ou 6x de R$ ${(preco/6).toFixed(2)}</p>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  </script>
+</body>
+</html>

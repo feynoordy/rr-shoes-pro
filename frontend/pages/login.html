@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - RR_SHOEES</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    body {
+      background: #0a0a0a;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+    }
+
+    .font-display { font-family: 'Playfair Display', serif; }
+
+    .btn-gold {
+      background: linear-gradient(135deg, #c9a227 0%, #d4af37 50%, #f5d67b 100%);
+      color: #0a0a0a;
+      font-weight: 700;
+    }
+
+    .input-dark {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      color: #fff;
+    }
+
+    .input-dark:focus {
+      border-color: #d4af37;
+      outline: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center px-6">
+
+  <div class="bg-[#111] border border-white/5 rounded-3xl p-10 max-w-md w-full">
+    
+    <div class="text-center mb-8">
+      <a href="../index.html" class="text-2xl font-bold font-display">
+        RR<span class="text-[#d4af37]">_</span>SHOEES
+      </a>
+      <p class="text-gray-400 text-sm mt-2">Acesse sua conta</p>
+    </div>
+
+    <!-- Form Login -->
+    <form id="login-form" onsubmit="fazerLogin(event)" class="space-y-4">
+      <div>
+        <label class="text-xs text-gray-400 uppercase tracking-wider">Email</label>
+        <input type="email" id="login-email" required class="input-dark w-full px-4 py-3 rounded-lg mt-1" placeholder="seu@email.com">
+      </div>
+      <div>
+        <label class="text-xs text-gray-400 uppercase tracking-wider">Senha</label>
+        <input type="password" id="login-senha" required class="input-dark w-full px-4 py-3 rounded-lg mt-1" placeholder="••••••••">
+      </div>
+      <button type="submit" class="btn-gold w-full py-3 rounded-lg text-lg font-bold">ENTRAR</button>
+    </form>
+
+    <p class="text-center text-xs text-gray-500 mt-6">
+      Admin: admin@rrshoes.com.br / admin123
+    </p>
+
+    <div id="login-msg" class="text-center text-sm mt-4"></div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script>
+    async function fazerLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const senha = document.getElementById('login-senha').value;
+      const msg = document.getElementById('login-msg');
+
+      try {
+        const data = await api.login(email, senha);
+        if (data.success) {
+          msg.innerHTML = '<span class="text-green-400">✅ Login realizado!</span>';
+          setTimeout(() => window.location.href = '../index.html', 1000);
+        } else {
+          msg.innerHTML = '<span class="text-red-400">❌ ' + (data.message || 'Erro ao fazer login') + '</span>';
+        }
+      } catch (error) {
+        msg.innerHTML = '<span class="text-red-400">❌ Erro de conexão</span>';
+      }
+    }
+  </script>
+</body>
+</html>

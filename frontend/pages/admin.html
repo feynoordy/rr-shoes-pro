@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Painel Admin - RR_SHOEES</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700;800&display=swap');
+    body { background: #0a0a0a; font-family: 'Inter', sans-serif; color: #fff; }
+    .font-display { font-family: 'Playfair Display', serif; }
+    .sidebar-link { transition: all 0.3s ease; border-left: 3px solid transparent; }
+    .sidebar-link:hover, .sidebar-link.active { background: rgba(212,175,55,0.1); color: #d4af37; border-left-color: #d4af37; }
+    .btn-gold { background: linear-gradient(135deg, #c9a227, #d4af37); color: #0a0a0a; font-weight: 700; cursor: pointer; border: none; }
+    .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(212,175,55,0.3); }
+    .card-metric { background: #111; border: 1px solid #222; transition: all 0.3s; }
+    .card-metric:hover { border-color: #d4af37; transform: translateY(-3px); }
+    .input-dark { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 8px; width: 100%; font-family: 'Inter', sans-serif; }
+    .input-dark:focus { border-color: #d4af37; outline: none; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: center; justify-content: center; }
+    .modal.show { display: flex; }
+    .upload-area { border: 2px dashed #333; border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; }
+    .upload-area:hover { border-color: #d4af37; background: rgba(212,175,55,0.05); }
+    .badge-on { background: #4CAF50; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 11px; }
+    .badge-off { background: #f44336; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 11px; }
+    .status-aguardando { background: #FF9800; color: #000; }
+    .status-preparando { background: #2196F3; color: #fff; }
+    .status-enviado { background: #9C27B0; color: #fff; }
+    .status-entregue { background: #4CAF50; color: #fff; }
+    .status-cancelado { background: #f44336; color: #fff; }
+  </style>
+</head>
+<body class="flex min-h-screen">
+
+<script>
+  if (localStorage.getItem("rrshoes_admin_logado") !== "true") {
+    window.location.href = "admin-login.html";
+  }
+</script>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="w-64 bg-[#0f0f0f] border-r border-white/5 min-h-screen p-6 hidden lg:block">
+  <div class="mb-10">
+    <a href="../index.html" class="text-2xl font-bold font-display">RR<span class="text-[#d4af37]">_</span>SHOEES</a>
+    <p class="text-xs text-gray-500 mt-1 uppercase">Painel Admin</p>
+  </div>
+  <nav class="space-y-1">
+    <a href="#" onclick="showTab('dashboard');return false;" class="sidebar-link active" data-tab="dashboard">
+      <i class="fas fa-chart-pie w-5"></i> Dashboard
+    </a>
+    <a href="#" onclick="showTab('produtos');return false;" class="sidebar-link text-gray-400" data-tab="produtos">
+      <i class="fas fa-box w-5"></i> Produtos
+    </a>
+    <a href="#" onclick="showTab('pedidos');return false;" class="sidebar-link text-gray-400" data-tab="pedidos">
+      <i class="fas fa-shopping-cart w-5"></i> Pedidos
+    </a>
+    <a href="#" onclick="showTab('metricas');return false;" class="sidebar-link text-gray-400" data-tab="metricas">
+      <i class="fas fa-chart-line w-5"></i> Métricas
+    </a>
+    <a href="#" onclick="showTab('config');return false;" class="sidebar-link text-gray-400" data-tab="config">
+      <i class="fas fa-cog w-5"></i> Configurações
+    </a>
+    <a href="#" onclick="logoutAdmin();return false;" class="sidebar-link text-red-400 mt-8">
+      <i class="fas fa-sign-out-alt w-5"></i> Sair
+    </a>
+  </nav>
+</aside>
+
+<!-- ===== MAIN ===== -->
+<main class="flex-1 p-6 lg:p-10 overflow-y-auto max-h-screen">
+
+  <!-- ========== DASHBOARD ========== -->
+  <div id="tab-dashboard" class="tab-content active">
+    <h1 class="text-3xl font-bold mb-2">📊 Dashboard</h1>
+    <p class="text-gray-400 mb-8">Visão geral da sua loja</p>
+
+    <!-- Cards de Métricas -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+      <div class="card-metric rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center text-2xl">💰</div>
+          <span id="trend-receita" class="text-green-400 text-xs font-bold">+0%</span>
+        </div>
+        <p class="text-3xl font-bold" id="metric-receita">R$ 0,00</p>
+        <p class="text-gray-400 text-sm">Receita Total</p>
+      </div>
+
+      <div class="card-metric rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center text-2xl">📦</div>
+          <span class="text-blue-400 text-xs font-bold">Total</span>
+        </div>
+        <p class="text-3xl font-bold" id="metric-pedidos">0</p>
+        <p class="text-gray-400 text-sm">Pedidos Realizados</p>
+      </div>
+
+      <div class="card-metric rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-yellow-500/20 rounded-xl flex items-center justify-center text-2xl">👟</div>
+          <span class="text-yellow-400 text-xs font-bold">Ativos</span>
+        </div>
+        <p class="text-3xl font-bold" id="metric-produtos">0</p>
+        <p class="text-gray-400 text-sm">Produtos no Catálogo</p>
+      </div>
+
+      <div class="card-metric rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center text-2xl">👥</div>
+          <span class="text-purple-400 text-xs font-bold">Total</span>
+        </div>
+        <p class="text-3xl font-bold" id="metric-clientes">0</p>
+        <p class="text-gray-400 text-sm">Clientes Cadastrados</p>
+      </div>
+    </div>
+
+    <!-- Status dos Pedidos -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
+      <div class="bg-[#111] rounded-2xl p-4 text-center border border-white/5">
+        <p class="text-2xl font-bold text-yellow-400" id="count-aguardando">0</p>
+        <p class="text-xs text-gray-400 mt-1">Aguardando</p>
+      </div>
+      <div class="bg-[#111] rounded-2xl p-4 text-center border border-white/5">
+        <p class="text-2xl font-bold text-blue-400" id="count-preparando">0</p>
+        <p class="text-xs text-gray-400 mt-1">Em Preparação</p>
+      </div>
+      <div class="bg-[#111] rounded-2xl p-4 text-center border border-white/5">
+        <p class="text-2xl font-bold text-purple-400" id="count-enviado">0</p>
+        <p class="text-xs text-gray-400 mt-1">Enviados</p>
+      </div>
+      <div class="bg-[#111] rounded-2xl p-4 text-center border border-white/5">
+        <p class="text-2xl font-bold text-green-400" id="count-entregue">0</p>
+        <p class="text-xs text-gray-400 mt-1">Entregues</p>
+      </div>
+      <div class="bg-[#111] rounded-2xl p-4 text-center border border-white/5">
+        <p class="text-2xl font-bold text-red-400" id="count-cancelado">0</p>
+        <p class="text-xs text-gray-400 mt-1">Cancelados</p>
+      </div>
+    </div>
+
+    <!-- Últimos Pedidos -->
+    <div class="bg-[#111] rounded-2xl p-6 border border-white/5">
+      <h3 class="font-bold text-lg mb-4">📋 Últimos Pedidos</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="text-gray-400 border-b border-white/5"><th class="text-left py-3">Pedido</th><th class="text-left py-3">Cliente</th><th class="text-left py-3">Total</th><th class="text-left py-3">Status</th><th class="text-left py-3">Data</th></tr></thead>
+          <tbody id="tabela-ultimos-pedidos"><tr><td colspan="5" class="py-4 text-center text-gray-500">Nenhum pedido</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== PRODUTOS ========== -->
+  <div id="tab-produtos" class="tab-content">
+    <div class="flex justify-between mb-8">
+      <div><h1 class="text-3xl font-bold">👟 Produtos</h1><p class="text-gray-400" id="total-produtos-text">0 produtos</p></div>
+      <button onclick="abrirModal()" class="btn-gold px-6 py-3 rounded-xl font-bold"><i class="fas fa-plus mr-2"></i> Novo Produto</button>
+    </div>
+    <div class="bg-[#111] rounded-2xl overflow-hidden border border-white/5">
+      <table class="w-full text-sm">
+        <thead><tr class="bg-[#0f0f0f] text-gray-400"><th class="text-left py-3 px-4">IMG</th><th class="text-left py-3 px-4">Nome</th><th class="text-left py-3 px-4">Categoria</th><th class="text-left py-3 px-4">Preço</th><th class="text-left py-3 px-4">Estoque</th><th class="text-left py-3 px-4">Ações</th></tr></thead>
+        <tbody id="tabela-produtos"><tr><td colspan="6" class="py-8 text-center text-gray-500">Carregando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ========== PEDIDOS ========== -->
+  <div id="tab-pedidos" class="tab-content">
+    <h1 class="text-3xl font-bold mb-2">📦 Pedidos</h1>
+    <p class="text-gray-400 mb-8">Gerencie todos os pedidos</p>
+    <div class="bg-[#111] rounded-2xl overflow-hidden border border-white/5">
+      <table class="w-full text-sm">
+        <thead><tr class="bg-[#0f0f0f] text-gray-400"><th class="text-left py-3 px-4">Pedido</th><th class="text-left py-3 px-4">Data</th><th class="text-left py-3 px-4">Cliente</th><th class="text-left py-3 px-4">Pagamento</th><th class="text-left py-3 px-4">Total</th><th class="text-left py-3 px-4">Status</th><th class="text-left py-3 px-4">Ação</th></tr></thead>
+        <tbody id="tabela-todos-pedidos"><tr><td colspan="7" class="py-8 text-center text-gray-500">Nenhum pedido</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ========== MÉTRICAS ========== -->
+  <div id="tab-metricas" class="tab-content">
+    <h1 class="text-3xl font-bold mb-2">📈 Métricas de Vendas</h1>
+    <p class="text-gray-400 mb-8">Análise de desempenho da loja</p>
+
+    <!-- Gráfico de Vendas -->
+    <div class="bg-[#111] rounded-2xl p-6 border border-white/5 mb-8">
+      <h3 class="font-bold text-lg mb-6">📊 Vendas nos Últimos 7 Dias</h3>
+      <div class="flex items-end gap-3 h-48" id="grafico-vendas">
+        <div class="flex-1 flex flex-col items-center gap-2">
+          <span class="text-xs text-gray-400">R$0</span>
+          <div class="w-full bg-[#d4af37] rounded-t" style="height:60%"></div>
+          <span class="text-xs text-gray-500">Seg</span>
+        </div>
+        <div class="flex-1 flex flex-col items-center gap-2">
+          <span class="text-xs text-gray-400">R$0</span>
+          <div class="w-full bg-[#d4af37] rounded-t" style="height:80%"></div>
+          <span class="text-xs text-gray-500">Ter</span>
+        </div>
+        <div class="flex-1 flex flex-col items-center gap-2">
+          <span class="text-xs text-gray-400">R$0</span>
+          <div class="w-full bg-[#d4af37] rounded-t" style="height:45%"></div>
+          <span class="text-xs text-gray-500">Qua</span>
+        </div>
+        <div class="flex-1 flex flex-col items-center gap-2">
+          <span class="text-xs text-gray-400">R$0</span>
+          <div class="w-full bg-[#d4af37] rounded-t" style="height:90%"></div>
+          <span class="text-xs text-gray-500">Qui</span>
+        </div>
+        <div class="flex-1 flex flex-col items-center gap-2">
+          <span class="text-xs text-gray-400">R$0</span>
+          <div class="w-full bg-[#d4af37] rounded-t" style="height:70%"></div>
+          <span class="text-xs text-gray-500">Sex</span>
+        </div>
+        <div class="flex-1 flex flex-col items-center gap-2">
+          <span class="text-xs text-gray-400">R$0</span>
+          <div class="w-full bg-[#d4af37] rounded-t" style="height:95%"></div>
+          <span class="text-xs text-gray-500">Sáb</span>
+        </div>
+        <div class="flex-1 flex flex-col items-center gap-2">
+          <span class="text-xs text-gray-400">R$0</span>
+          <div class="w-full bg-[#d4af37] rounded-t" style="height:55%"></div>
+          <span class="text-xs text-gray-500">Dom</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Métricas detalhadas -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-[#111] rounded-2xl p-6 border border-white/5 text-center">
+        <i class="fas fa-percentage text-4xl text-[#d4af37] mb-3"></i>
+        <p class="text-3xl font-bold" id="metrica-conversao">3.2%</p>
+        <p class="text-gray-400 text-sm mt-2">Taxa de Conversão</p>
+      </div>
+      <div class="bg-[#111] rounded-2xl p-6 border border-white/5 text-center">
+        <i class="fas fa-shopping-cart text-4xl text-[#d4af37] mb-3"></i>
+        <p class="text-3xl font-bold" id="metrica-ticket">R$ 0</p>
+        <p class="text-gray-400 text-sm mt-2">Ticket Médio</p>
+      </div>
+      <div class="bg-[#111] rounded-2xl p-6 border border-white/5 text-center">
+        <i class="fas fa-box text-4xl text-[#d4af37] mb-3"></i>
+        <p class="text-3xl font-bold" id="metrica-estoque">0</p>
+        <p class="text-gray-400 text-sm mt-2">Itens em Estoque</p>
+      </div>
+    </div>
+
+    <!-- Métodos de Pagamento -->
+    <div class="bg-[#111] rounded-2xl p-6 border border-white/5">
+      <h3 class="font-bold text-lg mb-4">💳 Vendas por Método de Pagamento</h3>
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <span>📱 PIX</span>
+          <div class="flex items-center gap-3">
+            <div class="w-40 bg-gray-700 rounded-full h-3"><div class="bg-[#d4af37] h-3 rounded-full" style="width:45%" id="bar-pix"></div></div>
+            <span class="text-sm" id="count-pix">0</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <span>💳 Cartão</span>
+          <div class="flex items-center gap-3">
+            <div class="w-40 bg-gray-700 rounded-full h-3"><div class="bg-blue-400 h-3 rounded-full" style="width:35%" id="bar-cartao"></div></div>
+            <span class="text-sm" id="count-cartao">0</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <span>📄 Boleto</span>
+          <div class="flex items-center gap-3">
+            <div class="w-40 bg-gray-700 rounded-full h-3"><div class="bg-green-400 h-3 rounded-full" style="width:20%" id="bar-boleto"></div></div>
+            <span class="text-sm" id="count-boleto">0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== CONFIGURAÇÕES ========== -->
+  <div id="tab-config" class="tab-content">
+    <h1 class="text-3xl font-bold mb-2">⚙️ Configurações</h1>
+    <p class="text-gray-400 mb-8">Gateways de Pagamento e APIs</p>
+
+    <!-- MERCADO PAGO -->
+    <div class="bg-[#111] border border-white/5 rounded-2xl p-6 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center text-xl">💳</div>
+          <div>
+            <h3 class="font-bold text-lg">Mercado Pago</h3>
+            <p class="text-xs text-gray-400">PIX, Cartão de Crédito e Boleto</p>
+          </div>
+        </div>
+        <span class="badge-on" id="mp-status">Conectado</span>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label class="text-xs text-gray-400 uppercase tracking-wider flex items-center gap-2"><i class="fas fa-key"></i> Access Token (Chave Secreta)</label>
+          <input type="password" id="mp-access-token" class="input-dark mt-1" placeholder="APP_USR-0000000000000000-000000-...">
+          <p class="text-xs text-gray-600 mt-1">Obtenha em: Mercado Pago → Configurações → Credenciais</p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 uppercase tracking-wider flex items-center gap-2"><i class="fas fa-lock-open"></i> Public Key (Chave Pública)</label>
+          <input type="text" id="mp-public-key" class="input-dark mt-1" placeholder="APP_USR-00000000-0000-0000-...">
+          <p class="text-xs text-gray-600 mt-1">Obtenha em: Mercado Pago → Configurações → Credenciais</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- STRIPE -->
+    <div class="bg-[#111] border border-white/5 rounded-2xl p-6 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center text-xl">💳</div>
+          <div>
+            <h3 class="font-bold text-lg">Stripe</h3>
+            <p class="text-xs text-gray-400">Cartão de Crédito Internacional</p>
+          </div>
+        </div>
+        <span class="badge-off" id="stripe-status">Não Configurado</span>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label class="text-xs text-gray-400 uppercase tracking-wider flex items-center gap-2"><i class="fas fa-key"></i> Secret Key (Chave Secreta)</label>
+          <input type="password" id="stripe-secret-key" class="input-dark mt-1" placeholder="SUA_STRIPE_SECRET_KEY">
+          <p class="text-xs text-gray-600 mt-1">Obtenha em: Stripe Dashboard → Developers → API Keys</p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 uppercase tracking-wider flex items-center gap-2"><i class="fas fa-lock-open"></i> Publishable Key (Chave Pública)</label>
+          <input type="text" id="stripe-public-key" class="input-dark mt-1" placeholder="SUA_STRIPE_PUBLIC_KEY">
+          <p class="text-xs text-gray-600 mt-1">Obtenha em: Stripe Dashboard → Developers → API Keys</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGSEGURO -->
+    <div class="bg-[#111] border border-white/5 rounded-2xl p-6 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center text-xl">🏦</div>
+          <div>
+            <h3 class="font-bold text-lg">PagSeguro</h3>
+            <p class="text-xs text-gray-400">Gateway completo brasileiro</p>
+          </div>
+        </div>
+        <span class="badge-off" id="pagseguro-status">Não Configurado</span>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label class="text-xs text-gray-400 uppercase tracking-wider flex items-center gap-2"><i class="fas fa-envelope"></i> Email da Conta</label>
+          <input type="email" id="pagseguro-email" class="input-dark mt-1" placeholder="seu@email.com">
+          <p class="text-xs text-gray-600 mt-1">Email cadastrado no PagSeguro</p>
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 uppercase tracking-wider flex items-center gap-2"><i class="fas fa-key"></i> Token</label>
+          <input type="password" id="pagseguro-token" class="input-dark mt-1" placeholder="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX">
+          <p class="text-xs text-gray-600 mt-1">Obtenha em: PagSeguro → Integrações → Token</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTÃO SALVAR -->
+    <button onclick="salvarConfig()" class="btn-gold w-full py-4 rounded-xl text-lg font-bold">
+      <i class="fas fa-save mr-2"></i> SALVAR CONFIGURAÇÕES
+    </button>
+    <p id="config-msg" class="text-center text-sm mt-4"></p>
+  </div>
+
+</main>
+
+<!-- ===== MODAL PRODUTO ===== -->
+<div class="modal" id="modal-produto">
+  <div class="bg-[#111] rounded-2xl p-8 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto border border-white/5">
+    <div class="flex justify-between mb-6">
+      <h3 class="text-xl font-bold" id="modal-title">Novo Produto</h3>
+      <button onclick="fecharModal()" class="text-gray-400 text-2xl">&times;</button>
+    </div>
+    <div class="space-y-4">
+      <input type="hidden" id="prod-id">
+      <div><label class="text-xs text-gray-400">Nome *</label><input type="text" id="prod-nome" class="input-dark mt-1" placeholder="Nome do tênis"></div>
+      <div>
+        <label class="text-xs text-gray-400 mb-2 block">Imagem *</label>
+        <img id="preview-img" class="w-full h-48 object-cover rounded-xl mb-3" style="display:none;">
+        <div id="upload-box" class="upload-area" onclick="document.getElementById('file-input').click()">
+          <i class="fas fa-cloud-upload-alt text-3xl text-gray-500 mb-2"></i>
+          <p class="text-gray-400 text-sm">Clique para upload</p>
+        </div>
+        <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="uploadImagem(this.files[0])">
+        <p class="text-xs text-gray-500 mt-2">Ou cole URL:</p>
+        <input type="url" id="prod-url" class="input-dark mt-1" placeholder="https://..." onchange="previewURL(this.value)">
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div><label class="text-xs text-gray-400">Preço *</label><input type="number" id="prod-preco" class="input-dark mt-1" step="0.01" placeholder="299.90"></div>
+        <div><label class="text-xs text-gray-400">Preço Promo</label><input type="number" id="prod-promo" class="input-dark mt-1" step="0.01" placeholder="249.90"></div>
+      </div>
+      <div><label class="text-xs text-gray-400">Categoria *</label>
+        <select id="prod-categoria" class="input-dark mt-1">
+          <option value="">Selecione</option><option>Lançamento</option><option>Masculino</option><option>Feminino</option><option>Casual</option><option>Classic</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div><label class="text-xs text-gray-400">Estoque *</label><input type="number" id="prod-estoque" class="input-dark mt-1" value="10" min="0"></div>
+        <div><label class="text-xs text-gray-400">Avaliação</label><input type="number" id="prod-avaliacao" class="input-dark mt-1" value="5.0" min="0" max="5" step="0.1"></div>
+      </div>
+      <div><label class="text-xs text-gray-400">Descrição</label><textarea id="prod-descricao" class="input-dark mt-1" rows="3"></textarea></div>
+      <div class="flex gap-4">
+        <button onclick="fecharModal()" class="flex-1 py-3 rounded-xl border border-white/10 text-gray-400">Cancelar</button>
+        <button onclick="salvarProduto()" class="btn-gold flex-1 py-3">💾 SALVAR</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== NAVEGAÇÃO =====
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelector(`[data-tab="${name}"]`).classList.add('active');
+  
+  if (name === 'dashboard') carregarDashboard();
+  if (name === 'produtos') listarProdutos();
+  if (name === 'pedidos') listarPedidos();
+  if (name === 'metricas') carregarMetricas();
+  if (name === 'config') carregarConfig();
+}
+
+function logoutAdmin() {
+  localStorage.removeItem('rrshoes_admin_logado');
+  window.location.href = 'admin-login.html';
+}
+
+// ===== PRODUTOS =====
+const CHAVE = 'rrshoes_produtos';
+
+function getProdutos() {
+  const dados = localStorage.getItem(CHAVE);
+  if (!dados) {
+    const padrao = [
+      { id:1, nome:"Nike Air Max 2026", categoria:"Lançamento", preco:899.90, preco_promo:749.90, imagem_principal:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop", estoque:20, avaliacao:4.9, num_avaliacoes:328, descricao:"Nike Air Max 2026." },
+      { id:2, nome:"Air Jordan 4 Retro", categoria:"Lançamento", preco:1299.90, preco_promo:1099.90, imagem_principal:"https://images.unsplash.com/photo-1597045566677-8cf032ed6634?w=600&h=600&fit=crop", estoque:10, avaliacao:5.0, num_avaliacoes:142, descricao:"Jordan 4 Retro." },
+      { id:3, nome:"Nike Dunk Low Retro", categoria:"Lançamento", preco:799.90, imagem_principal:"https://images.unsplash.com/photo-1607522370275-f14206abe7d3?w=600&h=600&fit=crop", estoque:15, avaliacao:4.8, num_avaliacoes:256, descricao:"Dunk Low." },
+      { id:4, nome:"Nike Air Force 1 Shadow", categoria:"Feminino", preco:649.90, preco_promo:549.90, imagem_principal:"https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600&h=600&fit=crop", estoque:25, avaliacao:4.7, num_avaliacoes:189, descricao:"AF1 Shadow." }
+    ];
+    localStorage.setItem(CHAVE, JSON.stringify(padrao));
+    return padrao;
+  }
+  return JSON.parse(dados);
+}
+
+function salvarProdutos(lista) { localStorage.setItem(CHAVE, JSON.stringify(lista)); }
+
+function listarProdutos() {
+  const produtos = getProdutos();
+  document.getElementById('total-produtos-text').textContent = produtos.length + ' produtos';
+  document.getElementById('metric-produtos').textContent = produtos.length;
+  
+  const tbody = document.getElementById('tabela-produtos');
+  if (produtos.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-gray-500">Nenhum produto.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = produtos.map(p => `
+    <tr class="border-b border-white/5 hover:bg-[#1a1a1a]">
+      <td class="py-3 px-4"><img src="${p.imagem_principal}" class="w-12 h-12 object-cover rounded-lg"></td>
+      <td class="py-3 px-4 font-bold">${p.nome}</td>
+      <td class="py-3 px-4 text-gray-400">${p.categoria}</td>
+      <td class="py-3 px-4 text-[#d4af37] font-bold">R$ ${(p.preco_promo||p.preco).toFixed(2)}</td>
+      <td class="py-3 px-4">${p.estoque}</td>
+      <td class="py-3 px-4">
+        <button onclick="editarProduto(${p.id})" class="text-blue-400 mr-3"><i class="fas fa-edit"></i></button>
+        <button onclick="excluirProduto(${p.id})" class="text-red-400"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+}
+
+function abrirModal() {
+  document.getElementById('modal-title').textContent = 'Novo Produto';
+  document.getElementById('prod-id').value = '';
+  ['prod-nome','prod-preco','prod-promo','prod-categoria','prod-url'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('prod-estoque').value = '10';
+  document.getElementById('prod-avaliacao').value = '5.0';
+  document.getElementById('prod-descricao').value = '';
+  document.getElementById('preview-img').style.display = 'none';
+  document.getElementById('upload-box').style.display = 'block';
+  document.getElementById('modal-produto').classList.add('show');
+}
+
+function fecharModal() { document.getElementById('modal-produto').classList.remove('show'); }
+
+function uploadImagem(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('preview-img').src = e.target.result;
+    document.getElementById('preview-img').style.display = 'block';
+    document.getElementById('upload-box').style.display = 'none';
+    document.getElementById('prod-url').value = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function previewURL(url) {
+  if (url) {
+    document.getElementById('preview-img').src = url;
+    document.getElementById('preview-img').style.display = 'block';
+    document.getElementById('upload-box').style.display = 'none';
+  }
+}
+
+function salvarProduto() {
+  const nome = document.getElementById('prod-nome').value.trim();
+  const preco = parseFloat(document.getElementById('prod-preco').value);
+  const categoria = document.getElementById('prod-categoria').value;
+  const estoque = parseInt(document.getElementById('prod-estoque').value);
+  const imagem = document.getElementById('prod-url').value || document.getElementById('preview-img').src;
+
+  if (!nome || !preco || !categoria || isNaN(estoque)) { alert('Preencha todos os campos!'); return; }
+  if (!imagem || imagem === window.location.href) { alert('Adicione uma imagem!'); return; }
+
+  const produto = {
+    id: Date.now(), nome, preco,
+    preco_promo: parseFloat(document.getElementById('prod-promo').value) || null,
+    categoria, imagem_principal: imagem, estoque,
+    descricao: document.getElementById('prod-descricao').value,
+    avaliacao: parseFloat(document.getElementById('prod-avaliacao').value) || 5.0,
+    num_avaliacoes: 0
+  };
+
+  let produtos = getProdutos();
+  const editId = document.getElementById('prod-id').value;
+  if (editId) {
+    const idx = produtos.findIndex(p => p.id == editId);
+    if (idx !== -1) { produto.id = parseInt(editId); produtos[idx] = produto; }
+  } else {
+    produtos.push(produto);
+  }
+
+  salvarProdutos(produtos);
+  fecharModal();
+  listarProdutos();
+  carregarDashboard();
+  alert('✅ Produto salvo! Total: ' + produtos.length);
+}
+
+function editarProduto(id) {
+  const p = getProdutos().find(prod => prod.id === id);
+  if (!p) { alert('Não encontrado!'); return; }
+  document.getElementById('modal-title').textContent = 'Editar Produto';
+  document.getElementById('prod-id').value = p.id;
+  document.getElementById('prod-nome').value = p.nome;
+  document.getElementById('prod-preco').value = p.preco;
+  document.getElementById('prod-promo').value = p.preco_promo || '';
+  document.getElementById('prod-categoria').value = p.categoria;
+  document.getElementById('prod-estoque').value = p.estoque;
+  document.getElementById('prod-descricao').value = p.descricao || '';
+  document.getElementById('prod-avaliacao').value = p.avaliacao || 5.0;
+  previewURL(p.imagem_principal);
+  document.getElementById('modal-produto').classList.add('show');
+}
+
+function excluirProduto(id) {
+  if (!confirm('Excluir?')) return;
+  let produtos = getProdutos().filter(p => p.id !== id);
+  salvarProdutos(produtos);
+  listarProdutos();
+  carregarDashboard();
+}
+
+// ===== PEDIDOS =====
+function getPedidos() { return JSON.parse(localStorage.getItem('rrshoes_pedidos')) || []; }
+
+function listarPedidos() {
+  const pedidos = getPedidos();
+  const tbody = document.getElementById('tabela-todos-pedidos');
+  
+  if (pedidos.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-gray-500">Nenhum pedido</td></tr>';
+    return;
+  }
+
+  const colors = { aguardando:'text-yellow-400', preparando:'text-blue-400', enviado:'text-purple-400', entregue:'text-green-400', cancelado:'text-red-400' };
+
+  tbody.innerHTML = pedidos.slice(-30).reverse().map(p => `
+    <tr class="border-b border-white/5 hover:bg-[#1a1a1a]">
+      <td class="py-3 px-4 font-bold">#${p.id}</td>
+      <td class="py-3 px-4 text-gray-400 text-xs">${p.data||'N/A'}</td>
+      <td class="py-3 px-4 text-sm">${p.cliente?.nome||'N/A'}</td>
+      <td class="py-3 px-4 text-xs">${p.pagamento||'N/A'}</td>
+      <td class="py-3 px-4 text-[#d4af37] font-bold">R$ ${(p.total||0).toFixed(2)}</td>
+      <td class="py-3 px-4"><span class="font-bold text-xs ${colors[p.status]||''}">${p.status||'pendente'}</span></td>
+      <td class="py-3 px-4">
+        <select onchange="atualizarStatus('${p.id}', this.value)" class="bg-[#1a1a1a] border border-white/10 rounded px-2 py-1 text-xs">
+          <option value="">Alterar</option>
+          <option value="aguardando">Aguardando</option>
+          <option value="preparando">Preparando</option>
+          <option value="enviado">Enviado</option>
+          <option value="entregue">Entregue</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+      </td>
+    </tr>`).join('');
+}
+
+function atualizarStatus(id, status) {
+  if (!status) return;
+  let pedidos = getPedidos();
+  const p = pedidos.find(ped => ped.id === id);
+  if (p) { p.status = status; localStorage.setItem('rrshoes_pedidos', JSON.stringify(pedidos)); listarPedidos(); carregarDashboard(); carregarMetricas(); }
+}
+
+// ===== DASHBOARD =====
+function carregarDashboard() {
+  const pedidos = getPedidos();
+  const produtos = getProdutos();
+  const totalReceita = pedidos.reduce((s, p) => s + (p.total || 0), 0);
+  const clientesUnicos = [...new Set(pedidos.map(p => p.cliente?.email).filter(Boolean))];
+
+  document.getElementById('metric-receita').textContent = 'R$ ' + totalReceita.toFixed(2);
+  document.getElementById('metric-pedidos').textContent = pedidos.length;
+  document.getElementById('metric-produtos').textContent = produtos.length;
+  document.getElementById('metric-clientes').textContent = clientesUnicos.length;
+
+  // Contagem por status
+  const status = { aguardando:0, preparando:0, enviado:0, entregue:0, cancelado:0 };
+  pedidos.forEach(p => { if (status[p.status] !== undefined) status[p.status]++; });
+  document.getElementById('count-aguardando').textContent = status.aguardando;
+  document.getElementById('count-preparando').textContent = status.preparando;
+  document.getElementById('count-enviado').textContent = status.enviado;
+  document.getElementById('count-entregue').textContent = status.entregue;
+  document.getElementById('count-cancelado').textContent = status.cancelado;
+
+  // Últimos pedidos
+  const tbody = document.getElementById('tabela-ultimos-pedidos');
+  const ultimos = pedidos.slice(-5).reverse();
+  if (ultimos.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-gray-500">Nenhum pedido</td></tr>';
+  } else {
+    const colors = { aguardando:'text-yellow-400', preparando:'text-blue-400', enviado:'text-purple-400', entregue:'text-green-400' };
+    tbody.innerHTML = ultimos.map(p => `
+      <tr class="border-b border-white/5">
+        <td class="py-3 font-bold">#${p.id}</td>
+        <td class="py-3">${p.cliente?.nome||'N/A'}</td>
+        <td class="py-3 text-[#d4af37]">R$ ${(p.total||0).toFixed(2)}</td>
+        <td class="py-3"><span class="${colors[p.status]||''}">${p.status}</span></td>
+        <td class="py-3 text-gray-400 text-xs">${p.data||''}</td>
+      </tr>`).join('');
+  }
+}
+
+// ===== MÉTRICAS =====
+function carregarMetricas() {
+  const pedidos = getPedidos();
+  const produtos = getProdutos();
+  
+  // Ticket médio
+  const totalReceita = pedidos.reduce((s, p) => s + (p.total || 0), 0);
+  const ticketMedio = pedidos.length > 0 ? totalReceita / pedidos.length : 0;
+  document.getElementById('metrica-ticket').textContent = 'R$ ' + ticketMedio.toFixed(2);
+  
+  // Estoque total
+  const estoqueTotal = produtos.reduce((s, p) => s + (p.estoque || 0), 0);
+  document.getElementById('metrica-estoque').textContent = estoqueTotal;
+  
+  // Conversão (simulada)
+  document.getElementById('metrica-conversao').textContent = (Math.random() * 5 + 1).toFixed(1) + '%';
+
+  // Por método de pagamento
+  const metodos = { pix: 0, cartao: 0, boleto: 0 };
+  pedidos.forEach(p => { if (metodos[p.pagamento] !== undefined) metodos[p.pagamento]++; });
+  const totalPedidos = pedidos.length || 1;
+  
+  document.getElementById('count-pix').textContent = metodos.pix;
+  document.getElementById('count-cartao').textContent = metodos.cartao;
+  document.getElementById('count-boleto').textContent = metodos.boleto;
+  
+  document.getElementById('bar-pix').style.width = ((metodos.pix / totalPedidos) * 100) + '%';
+  document.getElementById('bar-cartao').style.width = ((metodos.cartao / totalPedidos) * 100) + '%';
+  document.getElementById('bar-boleto').style.width = ((metodos.boleto / totalPedidos) * 100) + '%';
+}
+
+// ===== CONFIGURAÇÕES =====
+function carregarConfig() {
+  const c = JSON.parse(localStorage.getItem('rrshoes_config')) || {};
+  document.getElementById('mp-access-token').value = c.mpAccessToken || '';
+  document.getElementById('mp-public-key').value = c.mpPublicKey || '';
+  document.getElementById('stripe-secret-key').value = c.stripeSecretKey || '';
+  document.getElementById('stripe-public-key').value = c.stripePublicKey || '';
+  document.getElementById('pagseguro-email').value = c.pagseguroEmail || '';
+  document.getElementById('pagseguro-token').value = c.pagseguroToken || '';
+  
+  // Atualizar badges
+  document.getElementById('mp-status').textContent = c.mpAccessToken ? '✅ Conectado' : 'Não Configurado';
+  document.getElementById('mp-status').className = c.mpAccessToken ? 'badge-on' : 'badge-off';
+  document.getElementById('stripe-status').textContent = c.stripeSecretKey ? '✅ Conectado' : 'Não Configurado';
+  document.getElementById('stripe-status').className = c.stripeSecretKey ? 'badge-on' : 'badge-off';
+  document.getElementById('pagseguro-status').textContent = c.pagseguroEmail ? '✅ Conectado' : 'Não Configurado';
+  document.getElementById('pagseguro-status').className = c.pagseguroEmail ? 'badge-on' : 'badge-off';
+}
+
+function salvarConfig() {
+  const config = {
+    mpAccessToken: document.getElementById('mp-access-token').value.trim(),
+    mpPublicKey: document.getElementById('mp-public-key').value.trim(),
+    stripeSecretKey: document.getElementById('stripe-secret-key').value.trim(),
+    stripePublicKey: document.getElementById('stripe-public-key').value.trim(),
+    pagseguroEmail: document.getElementById('pagseguro-email').value.trim(),
+    pagseguroToken: document.getElementById('pagseguro-token').value.trim()
+  };
+  localStorage.setItem('rrshoes_config', JSON.stringify(config));
+  document.getElementById('config-msg').innerHTML = '<span class="text-green-400">✅ Configurações salvas com sucesso!</span>';
+  setTimeout(() => document.getElementById('config-msg').innerHTML = '', 3000);
+  carregarConfig();
+}
+
+// ===== INICIALIZAR =====
+document.addEventListener('DOMContentLoaded', () => {
+  if (!localStorage.getItem(CHAVE)) {
+    localStorage.setItem(CHAVE, JSON.stringify([
+      { id:1, nome:"Nike Air Max 2026", categoria:"Lançamento", preco:899.90, preco_promo:749.90, imagem_principal:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop", estoque:20, avaliacao:4.9, num_avaliacoes:328 },
+      { id:2, nome:"Air Jordan 4 Retro", categoria:"Lançamento", preco:1299.90, preco_promo:1099.90, imagem_principal:"https://images.unsplash.com/photo-1597045566677-8cf032ed6634?w=600&h=600&fit=crop", estoque:10, avaliacao:5.0, num_avaliacoes:142 },
+      { id:3, nome:"Nike Dunk Low Retro", categoria:"Lançamento", preco:799.90, imagem_principal:"https://images.unsplash.com/photo-1607522370275-f14206abe7d3?w=600&h=600&fit=crop", estoque:15, avaliacao:4.8, num_avaliacoes:256 },
+      { id:4, nome:"Nike Air Force 1 Shadow", categoria:"Feminino", preco:649.90, preco_promo:549.90, imagem_principal:"https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600&h=600&fit=crop", estoque:25, avaliacao:4.7, num_avaliacoes:189 }
+    ]));
+  }
+  carregarDashboard();
+});
+
+document.getElementById('modal-produto').addEventListener('click', function(e) { if (e.target === this) fecharModal(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Painel Admin - RR_SHOEES</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+    body { background: #0a0a0a; font-family: 'Inter', sans-serif; color: #fff; }
+    .font-display { font-family: 'Playfair Display', serif; }
+    .sidebar-link { transition: all 0.3s ease; border-left: 3px solid transparent; }
+    .sidebar-link:hover, .sidebar-link.active { background: rgba(212, 175, 55, 0.1); color: #d4af37; border-left: 3px solid #d4af37; }
+    .btn-gold { background: linear-gradient(135deg, #c9a227, #d4af37); color: #0a0a0a; font-weight: 700; transition: all 0.3s ease; cursor: pointer; }
+    .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3); }
+    .card-metric { background: #111; border: 1px solid #222; transition: all 0.3s ease; }
+    .card-metric:hover { border-color: #d4af37; transform: translateY(-3px); }
+    .input-dark { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 12px 16px; border-radius: 8px; width: 100%; }
+    .input-dark:focus { border-color: #d4af37; outline: none; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .modal.hidden { display: none; }
+    .upload-area { border: 2px dashed #333; border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: all 0.3s ease; }
+    .upload-area:hover { border-color: #d4af37; background: rgba(212, 175, 55, 0.05); }
+  </style>
+</head>
+<body class="flex min-h-screen">
+
+<!-- VERIFICAÇÃO DE LOGIN -->
+<script>
+  if (localStorage.getItem("rrshoes_admin_logado") !== "true") {
+    window.location.href = "admin-login.html";
+  }
+</script>
+
+  <!-- SIDEBAR -->
+  <aside class="w-64 bg-[#0f0f0f] border-r border-white/5 min-h-screen p-6 hidden lg:block">
+    <div class="mb-10">
+      <a href="../index.html" class="text-2xl font-bold font-display">RR<span class="text-[#d4af37]">_</span>SHOEES</a>
+      <p class="text-xs text-gray-500 mt-1 uppercase tracking-wider">Painel Admin</p>
+    </div>
+    <nav class="space-y-1">
+      <a href="#" onclick="showTab('dashboard'); return false;" class="sidebar-link active flex items-center gap-3 px-4 py-3 rounded-lg text-sm" data-tab="dashboard"><i class="fas fa-chart-pie w-5"></i> Dashboard</a>
+      <a href="#" onclick="showTab('produtos'); return false;" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-gray-400" data-tab="produtos"><i class="fas fa-box w-5"></i> Produtos</a>
+      <a href="#" onclick="showTab('pedidos'); return false;" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-gray-400" data-tab="pedidos"><i class="fas fa-shopping-cart w-5"></i> Pedidos</a>
+      <a href="#" onclick="showTab('metricas'); return false;" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-gray-400" data-tab="metricas"><i class="fas fa-chart-line w-5"></i> Métricas</a>
+      <a href="#" onclick="logoutAdmin(); return false;" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-red-400 mt-8"><i class="fas fa-sign-out-alt w-5"></i> Sair</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="flex-1 p-6 lg:p-10 overflow-y-auto max-h-screen">
+
+    <!-- DASHBOARD -->
+    <div id="tab-dashboard" class="tab-content active">
+      <h1 class="text-3xl font-bold mb-2">Dashboard</h1>
+      <p class="text-gray-400 mb-8">Visão geral da sua loja</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <div class="card-metric rounded-2xl p-6"><div class="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center text-2xl mb-4">💰</div><p class="text-3xl font-bold" id="metric-receita">R$ 0</p><p class="text-gray-400 text-sm">Receita Total</p></div>
+        <div class="card-metric rounded-2xl p-6"><div class="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center text-2xl mb-4">📦</div><p class="text-3xl font-bold" id="metric-pedidos">0</p><p class="text-gray-400 text-sm">Pedidos</p></div>
+        <div class="card-metric rounded-2xl p-6"><div class="w-12 h-12 bg-yellow-500/20 rounded-xl flex items-center justify-center text-2xl mb-4">👟</div><p class="text-3xl font-bold" id="metric-produtos">0</p><p class="text-gray-400 text-sm">Produtos</p></div>
+        <div class="card-metric rounded-2xl p-6"><div class="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center text-2xl mb-4">👥</div><p class="text-3xl font-bold" id="metric-clientes">0</p><p class="text-gray-400 text-sm">Clientes</p></div>
+      </div>
+    </div>
+
+    <!-- PRODUTOS -->
+    <div id="tab-produtos" class="tab-content">
+      <div class="flex items-center justify-between mb-8">
+        <div><h1 class="text-3xl font-bold">Produtos</h1><p class="text-gray-400">Gerencie seu catálogo</p></div>
+        <button type="button" onclick="abrirModalProduto()" class="btn-gold px-6 py-3 rounded-xl font-bold"><i class="fas fa-plus mr-2"></i> Novo Produto</button>
+      </div>
+      <div class="bg-[#111] border border-white/5 rounded-2xl overflow-hidden">
+        <table class="w-full text-sm">
+          <thead><tr class="text-gray-400 border-b border-white/5 bg-[#0f0f0f]"><th class="text-left py-3 px-4">Imagem</th><th class="text-left py-3 px-4">Produto</th><th class="text-left py-3 px-4">Categoria</th><th class="text-left py-3 px-4">Preço</th><th class="text-left py-3 px-4">Estoque</th><th class="text-left py-3 px-4">Ações</th></tr></thead>
+          <tbody id="tabela-produtos"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PEDIDOS -->
+    <div id="tab-pedidos" class="tab-content">
+      <h1 class="text-3xl font-bold mb-2">Pedidos</h1>
+      <p class="text-gray-400 mb-8">Gerencie todos os pedidos</p>
+      <div class="bg-[#111] border border-white/5 rounded-2xl overflow-hidden">
+        <table class="w-full text-sm">
+          <thead><tr class="text-gray-400 border-b border-white/5 bg-[#0f0f0f]"><th class="text-left py-3 px-4">Pedido</th><th class="text-left py-3 px-4">Data</th><th class="text-left py-3 px-4">Cliente</th><th class="text-left py-3 px-4">Pagamento</th><th class="text-left py-3 px-4">Total</th><th class="text-left py-3 px-4">Status</th><th class="text-left py-3 px-4">Ações</th></tr></thead>
+          <tbody id="tabela-todos-pedidos"><tr><td colspan="7" class="py-4 text-center text-gray-500">Nenhum pedido ainda</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MÉTRICAS -->
+    <div id="tab-metricas" class="tab-content">
+      <h1 class="text-3xl font-bold mb-2">Métricas</h1>
+      <p class="text-gray-400 mb-8">Análise de desempenho</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-[#111] border border-white/5 rounded-2xl p-6"><h3 class="font-bold mb-4">📈 Vendas (7 dias)</h3><div class="flex items-end gap-2 h-40"><div class="flex-1 bg-[#d4af37] rounded-t" style="height:60%"></div><div class="flex-1 bg-[#d4af37] rounded-t" style="height:80%"></div><div class="flex-1 bg-[#d4af37] rounded-t" style="height:40%"></div><div class="flex-1 bg-[#d4af37] rounded-t" style="height:90%"></div><div class="flex-1 bg-[#d4af37] rounded-t" style="height:70%"></div><div class="flex-1 bg-[#d4af37] rounded-t" style="height:95%"></div><div class="flex-1 bg-[#d4af37] rounded-t" style="height:55%"></div></div></div>
+        <div class="bg-[#111] border border-white/5 rounded-2xl p-6"><h3 class="font-bold mb-4">🎯 Taxa de Conversão</h3><div class="text-center py-8"><p class="text-5xl font-bold text-[#d4af37]">3.2%</p></div></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ===== MODAL PRODUTO ===== -->
+  <div class="modal hidden" id="modal-produto">
+    <div class="bg-[#111] border border-white/5 rounded-2xl p-8 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-xl font-bold" id="modal-title">Novo Produto</h3>
+        <button type="button" onclick="fecharModalProduto()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+      </div>
+      
+      <!-- FORMULÁRIO (sem onsubmit no HTML para evitar refresh) -->
+      <div class="space-y-4">
+        <input type="hidden" id="prod-id">
+        <input type="hidden" id="prod-imagem-url">
+        
+        <div>
+          <label class="text-xs text-gray-400 uppercase tracking-wider">Nome *</label>
+          <input type="text" id="prod-nome" class="input-dark mt-1" placeholder="Nome do tênis">
+        </div>
+
+        <!-- UPLOAD -->
+        <div>
+          <label class="text-xs text-gray-400 uppercase tracking-wider mb-2 block">Imagem *</label>
+          <div id="preview-container" style="display:none;" class="mb-3">
+            <img id="image-preview" class="w-full h-48 object-cover rounded-xl border border-white/10">
+            <button type="button" onclick="removerImagem()" class="text-red-400 text-xs mt-2">✕ Remover</button>
+          </div>
+          <div id="upload-box" class="upload-area" onclick="document.getElementById('file-input').click()">
+            <i class="fas fa-cloud-upload-alt text-4xl text-gray-500 mb-3"></i>
+            <p class="text-gray-400 text-sm">📁 Clique para upload ou arraste</p>
+            <p class="text-gray-600 text-xs mt-1">JPEG, PNG, GIF, WebP (máx 5MB)</p>
+          </div>
+          <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleFileSelect(this.files[0])">
+          <div class="mt-3">
+            <p class="text-xs text-gray-500 mb-1">Ou cole uma URL:</p>
+            <div class="flex gap-2">
+              <input type="url" id="url-input" class="input-dark flex-1" placeholder="https://...">
+              <button type="button" onclick="usarURL()" class="bg-[#333] px-4 py-2 rounded-lg text-sm">Usar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="text-xs text-gray-400 uppercase tracking-wider">Preço *</label><input type="number" id="prod-preco" class="input-dark mt-1" placeholder="299.90" step="0.01"></div>
+          <div><label class="text-xs text-gray-400 uppercase tracking-wider">Preço Promo</label><input type="number" id="prod-preco-promo" class="input-dark mt-1" placeholder="249.90" step="0.01"></div>
+        </div>
+        
+        <div><label class="text-xs text-gray-400 uppercase tracking-wider">Categoria *</label>
+          <select id="prod-categoria" class="input-dark mt-1">
+            <option value="">Selecione</option>
+            <option value="Lançamento">Lançamento</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Feminino">Feminino</option>
+            <option value="Casual">Casual</option>
+            <option value="Classic">Classic</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div><label class="text-xs text-gray-400 uppercase tracking-wider">Estoque *</label><input type="number" id="prod-estoque" class="input-dark mt-1" placeholder="50" min="0"></div>
+          <div><label class="text-xs text-gray-400 uppercase tracking-wider">Avaliação</label><input type="number" id="prod-avaliacao" class="input-dark mt-1" value="5.0" min="0" max="5" step="0.1"></div>
+        </div>
+
+        <div><label class="text-xs text-gray-400 uppercase tracking-wider">Descrição</label><textarea id="prod-descricao" rows="3" class="input-dark mt-1" placeholder="Descrição..."></textarea></div>
+
+        <div class="flex gap-4 pt-2">
+          <button type="button" onclick="fecharModalProduto()" class="flex-1 px-6 py-3 rounded-xl border border-white/10 text-gray-400 hover:text-white transition">Cancelar</button>
+          <button type="button" onclick="salvarProduto()" class="btn-gold flex-1 py-3 rounded-xl font-bold">💾 SALVAR</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== NAVEGAÇÃO (sem refresh) =====
+    function showTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+      const tab = document.getElementById('tab-' + tabName);
+      if (tab) tab.classList.add('active');
+      const link = document.querySelector(`[data-tab="${tabName}"]`);
+      if (link) link.classList.add('active');
+      
+      if (tabName === 'produtos') carregarProdutos();
+      if (tabName === 'pedidos') carregarPedidos();
+      if (tabName === 'dashboard') carregarDashboard();
+    }
+
+    function logoutAdmin() {
+      localStorage.removeItem('rrshoes_admin_logado');
+      window.location.href = 'admin-login.html';
+    }
+
+    // ===== UPLOAD =====
+    function handleFileSelect(file) {
+      if (!file) return;
+      const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowed.includes(file.type)) { alert('Formato não permitido!'); return; }
+      if (file.size > 5*1024*1024) { alert('Arquivo muito grande! Máx 5MB'); return; }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        mostrarPreview(e.target.result);
+        document.getElementById('prod-imagem-url').value = e.target.result;
+      };
+      reader.readAsDataURL(file);
+
+      // Tentar upload para servidor
+      const formData = new FormData();
+      formData.append('imagem', file);
+      fetch('http://localhost:3000/api/upload', { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            document.getElementById('prod-imagem-url').value = 'http://localhost:3000' + data.imageUrl;
+          }
+        })
+        .catch(() => {});
+    }
+
+    function usarURL() {
+      const url = document.getElementById('url-input').value.trim();
+      if (url) { mostrarPreview(url); document.getElementById('prod-imagem-url').value = url; }
+    }
+
+    function mostrarPreview(src) {
+      document.getElementById('image-preview').src = src;
+      document.getElementById('preview-container').style.display = 'block';
+      document.getElementById('upload-box').style.display = 'none';
+    }
+
+    function removerImagem() {
+      document.getElementById('preview-container').style.display = 'none';
+      document.getElementById('upload-box').style.display = 'block';
+      document.getElementById('prod-imagem-url').value = '';
+      document.getElementById('url-input').value = '';
+      document.getElementById('file-input').value = '';
+    }
+
+    // ===== CRUD PRODUTOS =====
+    function getProdutos() {
+      return JSON.parse(localStorage.getItem('rrshoes_admin_produtos')) || [
+        { id: 1, nome: "Nike Air Max 2026", categoria: "Lançamento", preco: 899.90, preco_promo: 749.90, imagem_principal: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop", estoque: 20, avaliacao: 4.9 },
+        { id: 2, nome: "Air Jordan 4 Retro", categoria: "Lançamento", preco: 1299.90, preco_promo: 1099.90, imagem_principal: "https://images.unsplash.com/photo-1597045566677-8cf032ed6634?w=600&h=600&fit=crop", estoque: 10, avaliacao: 5.0 },
+        { id: 3, nome: "Nike Dunk Low Retro", categoria: "Lançamento", preco: 799.90, imagem_principal: "https://images.unsplash.com/photo-1607522370275-f14206abe7d3?w=600&h=600&fit=crop", estoque: 15, avaliacao: 4.8 },
+        { id: 4, nome: "Nike Air Force 1 Shadow", categoria: "Feminino", preco: 649.90, preco_promo: 549.90, imagem_principal: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600&h=600&fit=crop", estoque: 25, avaliacao: 4.7 }
+      ];
+    }
+
+    function carregarProdutos() {
+      const produtos = getProdutos();
+      document.getElementById('metric-produtos').textContent = produtos.length;
+      document.getElementById('tabela-produtos').innerHTML = produtos.map(p => `
+        <tr class="border-b border-white/5 hover:bg-[#1a1a1a]">
+          <td class="py-3 px-4"><img src="${p.imagem_principal}" class="w-14 h-14 object-cover rounded-lg" onerror="this.src='https://via.placeholder.com/50/1a1a1a/fff'"></td>
+          <td class="py-3 px-4 font-bold">${p.nome}</td>
+          <td class="py-3 px-4 text-gray-400">${p.categoria}</td>
+          <td class="py-3 px-4 text-[#d4af37] font-bold">R$ ${(p.preco_promo || p.preco).toFixed(2)}</td>
+          <td class="py-3 px-4">${p.estoque}</td>
+          <td class="py-3 px-4">
+            <button type="button" onclick="editarProduto(${p.id})" class="text-blue-400 hover:text-blue-300 mr-3"><i class="fas fa-edit"></i></button>
+            <button type="button" onclick="excluirProduto(${p.id})" class="text-red-400 hover:text-red-300"><i class="fas fa-trash"></i></button>
+          </td>
+        </tr>`).join('');
+    }
+
+    function abrirModalProduto() {
+      document.getElementById('modal-title').textContent = 'Novo Produto';
+      document.getElementById('prod-id').value = '';
+      document.getElementById('prod-nome').value = '';
+      document.getElementById('prod-preco').value = '';
+      document.getElementById('prod-preco-promo').value = '';
+      document.getElementById('prod-categoria').value = '';
+      document.getElementById('prod-estoque').value = '';
+      document.getElementById('prod-descricao').value = '';
+      document.getElementById('prod-avaliacao').value = '5.0';
+      removerImagem();
+      document.getElementById('modal-produto').classList.remove('hidden');
+    }
+
+    function fecharModalProduto() {
+      document.getElementById('modal-produto').classList.add('hidden');
+    }
+
+    function salvarProduto() {
+      const imagem = document.getElementById('prod-imagem-url').value;
+      const nome = document.getElementById('prod-nome').value.trim();
+      const preco = document.getElementById('prod-preco').value;
+      const categoria = document.getElementById('prod-categoria').value;
+      const estoque = document.getElementById('prod-estoque').value;
+
+      if (!nome || !preco || !categoria || !estoque) {
+        alert('Preencha todos os campos obrigatórios!');
+        return;
+      }
+      if (!imagem) {
+        alert('Adicione uma imagem!');
+        return;
+      }
+
+      const produto = {
+        id: Date.now(),
+        nome: nome,
+        preco: parseFloat(preco),
+        preco_promo: parseFloat(document.getElementById('prod-preco-promo').value) || null,
+        categoria: categoria,
+        imagem_principal: imagem,
+        estoque: parseInt(estoque),
+        descricao: document.getElementById('prod-descricao').value,
+        avaliacao: parseFloat(document.getElementById('prod-avaliacao').value) || 5.0,
+        num_avaliacoes: 0
+      };
+
+      let produtos = getProdutos();
+      const editId = document.getElementById('prod-id').value;
+
+      if (editId) {
+        const idx = produtos.findIndex(p => p.id == editId);
+        if (idx !== -1) { produto.id = parseInt(editId); produtos[idx] = produto; }
+      } else {
+        produtos.push(produto);
+      }
+
+      localStorage.setItem('rrshoes_admin_produtos', JSON.stringify(produtos));
+      fecharModalProduto();
+      carregarProdutos();
+      alert('✅ Produto salvo com sucesso!');
+    }
+
+    function editarProduto(id) {
+      const p = getProdutos().find(prod => prod.id === id);
+      if (!p) return;
+      document.getElementById('modal-title').textContent = 'Editar Produto';
+      document.getElementById('prod-id').value = p.id;
+      document.getElementById('prod-nome').value = p.nome;
+      document.getElementById('prod-preco').value = p.preco;
+      document.getElementById('prod-preco-promo').value = p.preco_promo || '';
+      document.getElementById('prod-categoria').value = p.categoria;
+      document.getElementById('prod-estoque').value = p.estoque;
+      document.getElementById('prod-descricao').value = p.descricao || '';
+      document.getElementById('prod-avaliacao').value = p.avaliacao || 5.0;
+      mostrarPreview(p.imagem_principal);
+      document.getElementById('modal-produto').classList.remove('hidden');
+    }
+
+    function excluirProduto(id) {
+      if (!confirm('Excluir este produto?')) return;
+      let produtos = getProdutos().filter(p => p.id !== id);
+      localStorage.setItem('rrshoes_admin_produtos', JSON.stringify(produtos));
+      carregarProdutos();
+    }
+
+    // ===== PEDIDOS =====
+    function carregarPedidos() {
+      const pedidos = JSON.parse(localStorage.getItem('rrshoes_pedidos')) || [];
+      document.getElementById('metric-pedidos').textContent = pedidos.length;
+      const tbody = document.getElementById('tabela-todos-pedidos');
+      
+      if (pedidos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-gray-500">Nenhum pedido ainda</td></tr>';
+        return;
+      }
+
+      const statusColors = {
+        'aguardando': 'bg-yellow-500/20 text-yellow-400',
+        'preparando': 'bg-blue-500/20 text-blue-400',
+        'enviado': 'bg-purple-500/20 text-purple-400',
+        'entregue': 'bg-green-500/20 text-green-400',
+        'cancelado': 'bg-red-500/20 text-red-400'
+      };
+
+      tbody.innerHTML = pedidos.slice(-20).reverse().map(p => `
+        <tr class="border-b border-white/5 hover:bg-[#1a1a1a]">
+          <td class="py-3 px-4 font-bold">#${p.id}</td>
+          <td class="py-3 px-4 text-gray-400">${p.data || 'N/A'}</td>
+          <td class="py-3 px-4">${p.cliente?.nome || 'N/A'}</td>
+          <td class="py-3 px-4">${p.pagamento || 'N/A'}</td>
+          <td class="py-3 px-4 text-[#d4af37] font-bold">R$ ${p.total?.toFixed(2) || '0.00'}</td>
+          <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs ${statusColors[p.status] || 'bg-gray-500/20 text-gray-400'}">${p.status || 'pendente'}</span></td>
+          <td class="py-3 px-4">
+            <select onchange="atualizarStatusPedido('${p.id}', this.value)" class="bg-[#1a1a1a] border border-white/10 rounded px-2 py-1 text-xs">
+              <option value="">Alterar...</option>
+              <option value="aguardando">Aguardando</option>
+              <option value="preparando">Em Preparação</option>
+              <option value="enviado">Enviado</option>
+              <option value="entregue">Entregue</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+          </td>
+        </tr>`).join('');
+    }
+
+    function atualizarStatusPedido(id, status) {
+      if (!status) return;
+      let pedidos = JSON.parse(localStorage.getItem('rrshoes_pedidos')) || [];
+      const p = pedidos.find(ped => ped.id === id);
+      if (p) { p.status = status; localStorage.setItem('rrshoes_pedidos', JSON.stringify(pedidos)); carregarPedidos(); }
+    }
+
+    function carregarDashboard() {
+      const pedidos = JSON.parse(localStorage.getItem('rrshoes_pedidos')) || [];
+      document.getElementById('metric-pedidos').textContent = pedidos.length;
+      document.getElementById('metric-produtos').textContent = getProdutos().length;
+      document.getElementById('metric-receita').textContent = 'R$ ' + pedidos.reduce((s, p) => s + (p.total || 0), 0).toFixed(2);
+    }
+
+    // Fechar modal ao clicar fora
+    document.getElementById('modal-produto').addEventListener('click', function(e) {
+      if (e.target === this) fecharModalProduto();
+    });
+
+    // Drag and drop
+    const uploadBox = document.getElementById('upload-box');
+    if (uploadBox) {
+      uploadBox.addEventListener('dragover', (e) => { e.preventDefault(); uploadBox.classList.add('dragover'); });
+      uploadBox.addEventListener('dragleave', () => uploadBox.classList.remove('dragover'));
+      uploadBox.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadBox.classList.remove('dragover');
+        handleFileSelect(e.dataTransfer.files[0]);
+      });
+    }
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', () => {
+      carregarDashboard();
+    });
+  </script>
+</body>
+</html>

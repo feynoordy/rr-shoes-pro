@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Checkout - RR_SHOEES</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+    body { background: #0a0a0a; font-family: 'Inter', sans-serif; color: #fff; }
+    .font-display { font-family: 'Playfair Display', serif; }
+    .btn-gold { background: linear-gradient(135deg, #c9a227, #d4af37); color: #0a0a0a; font-weight: 700; cursor: pointer; border: none; }
+    .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(212,175,55,0.3); }
+    .input-dark { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 8px; width: 100%; font-family: 'Inter', sans-serif; }
+    .input-dark:focus { border-color: #d4af37; outline: none; }
+    .payment-option { border: 2px solid #222; cursor: pointer; transition: all 0.3s; }
+    .payment-option.selecionado { border-color: #d4af37; background: rgba(212,175,55,0.1); }
+    .toast { position: fixed; bottom: 20px; right: 20px; background: #d4af37; color: #000; padding: 14px 24px; border-radius: 50px; z-index: 9999; font-weight: 700; opacity: 0; transform: translateY(20px); transition: all 0.4s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <header class="border-b border-white/5 px-4 md:px-6 py-4">
+    <div class="max-w-3xl mx-auto flex items-center justify-between">
+      <a href="index.html" class="text-xl md:text-2xl font-bold font-display">RR<span class="text-[#d4af37]">_</span>SHOEES</a>
+      <a href="index.html" class="text-gray-400 text-sm hover:text-[#d4af37]"><i class="fas fa-arrow-left mr-1"></i> Voltar</a>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 md:px-6 py-8 md:py-12">
+    
+    <!-- STEP 1: CARRINHO -->
+    <div id="step-carrinho">
+      <h1 class="text-2xl md:text-3xl font-bold mb-6">🛒 Meu Carrinho</h1>
+      <div id="carrinho-items" class="space-y-3 mb-6"></div>
+      <div class="bg-[#111] rounded-2xl p-4 md:p-6 border border-white/5">
+        <div class="flex justify-between text-sm mb-2"><span class="text-gray-400">Subtotal</span><span id="subtotal">R$ 0</span></div>
+        <div class="flex justify-between text-sm mb-2"><span class="text-gray-400">Frete</span><span id="frete-valor">-</span></div>
+        <hr class="border-white/10 my-3"><div class="flex justify-between text-lg md:text-xl font-bold"><span>Total</span><span class="text-[#d4af37]" id="total">R$ 0</span></div>
+      </div>
+      <button onclick="irParaCadastro()" class="btn-gold w-full py-3 md:py-4 rounded-xl text-base md:text-lg font-bold mt-6">CONTINUAR <i class="fas fa-arrow-right ml-2"></i></button>
+    </div>
+
+    <!-- STEP 2: CADASTRO (COM ENDEREÇO COMPLETO) -->
+    <div id="step-cadastro" style="display:none;">
+      <h1 class="text-2xl md:text-3xl font-bold mb-2">📋 Seus Dados</h1>
+      <p class="text-gray-400 mb-6 text-sm">Preencha para continuar (campos com * são obrigatórios)</p>
+      <div class="space-y-3">
+        <div><label class="text-xs text-gray-400">Nome *</label><input type="text" id="cli-nome" class="input-dark mt-1" placeholder="Seu nome completo"></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="text-xs text-gray-400">CPF</label><input type="text" id="cli-cpf" class="input-dark mt-1" placeholder="000.000.000-00"></div>
+          <div><label class="text-xs text-gray-400">Telefone</label><input type="tel" id="cli-tel" class="input-dark mt-1" placeholder="(11) 99999-9999"></div>
+        </div>
+        <div><label class="text-xs text-gray-400">Email *</label><input type="email" id="cli-email" class="input-dark mt-1" placeholder="seu@email.com"></div>
+        
+        <!-- ENDEREÇO COMPLETO -->
+        <div class="border-t border-white/10 pt-4 mt-4">
+          <p class="text-sm font-bold mb-3">📍 Endereço de Entrega</p>
+          <div class="grid grid-cols-3 gap-3">
+            <div class="col-span-2"><label class="text-xs text-gray-400">CEP *</label><input type="text" id="cli-cep" class="input-dark mt-1" placeholder="00000-000" maxlength="9"></div>
+            <div><label class="text-xs text-gray-400">Número *</label><input type="text" id="cli-numero" class="input-dark mt-1" placeholder="123"></div>
+          </div>
+          <div class="mt-3"><label class="text-xs text-gray-400">Endereço *</label><input type="text" id="cli-endereco" class="input-dark mt-1" placeholder="Rua, Avenida..."></div>
+          <div class="grid grid-cols-2 gap-3 mt-3">
+            <div><label class="text-xs text-gray-400">Bairro *</label><input type="text" id="cli-bairro" class="input-dark mt-1" placeholder="Bairro"></div>
+            <div><label class="text-xs text-gray-400">Cidade/Estado *</label><input type="text" id="cli-cidade" class="input-dark mt-1" placeholder="São Paulo/SP"></div>
+          </div>
+          <div class="mt-3"><label class="text-xs text-gray-400">Complemento</label><input type="text" id="cli-complemento" class="input-dark mt-1" placeholder="Apto, Bloco... (opcional)"></div>
+        </div>
+
+        <div class="flex gap-3 pt-4">
+          <button onclick="voltarCarrinho()" class="flex-1 py-3 rounded-xl border border-white/10 text-gray-400 text-sm">Voltar</button>
+          <button onclick="irParaPagamento()" class="btn-gold flex-1 py-3 rounded-xl font-bold text-sm">PAGAMENTO <i class="fas fa-arrow-right ml-2"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: PAGAMENTO -->
+    <div id="step-pagamento" style="display:none;">
+      <h1 class="text-2xl md:text-3xl font-bold mb-6">💳 Pagamento</h1>
+      <div class="space-y-3 mb-6">
+        <div class="payment-option selecionado rounded-xl p-4" onclick="selPgto('pix',this)">
+          <span class="font-bold text-[#d4af37]">📱 PIX</span><span class="text-green-400 font-bold ml-2">10% OFF</span>
+        </div>
+        <div class="payment-option rounded-xl p-4" onclick="selPgto('cartao',this)" id="pay-cartao">
+          <span class="font-bold">💳 Cartão</span>
+          <div id="cartao-campos" style="display:none;" class="mt-3 space-y-3">
+            <input type="text" id="card-num" class="input-dark" placeholder="Número do cartão">
+            <input type="text" id="card-nome" class="input-dark" placeholder="Nome no cartão">
+            <div class="grid grid-cols-2 gap-3">
+              <input type="text" id="card-val" class="input-dark" placeholder="MM/AA">
+              <input type="text" id="card-cvv" class="input-dark" placeholder="CVV">
+            </div>
+            <select id="card-parcelas" class="input-dark mt-1">
+              <option value="1">1x</option><option value="2">2x</option><option value="3">3x</option><option value="4">4x</option><option value="5">5x</option><option value="6">6x</option>
+            </select>
+          </div>
+        </div>
+        <div class="payment-option rounded-xl p-4" onclick="selPgto('boleto',this)"><span class="font-bold">📄 Boleto</span></div>
+      </div>
+      <div class="bg-[#111] rounded-2xl p-4 border border-white/5 mb-6">
+        <div class="flex justify-between text-lg font-bold"><span>Total</span><span class="text-[#d4af37]" id="pg-total">R$ 0</span></div>
+      </div>
+      <div class="flex gap-3">
+        <button onclick="voltarCadastro()" class="flex-1 py-3 rounded-xl border border-white/10 text-gray-400 text-sm">Voltar</button>
+        <button onclick="finalizar()" class="btn-gold flex-1 py-3 rounded-xl font-bold text-sm"><i class="fas fa-lock mr-2"></i> FINALIZAR</button>
+      </div>
+    </div>
+
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="js/produtos.js"></script>
+  <script>
+    let carrinho = JSON.parse(localStorage.getItem('rrshoes_cart')) || [];
+    let pgto = 'pix';
+
+    function renderCarrinho() {
+      const c = document.getElementById('carrinho-items');
+      if (carrinho.length === 0) {
+        c.innerHTML = '<p class="text-center text-gray-500 py-10">Carrinho vazio</p>';
+        return;
+      }
+      c.innerHTML = carrinho.map((item,i) => `
+        <div class="bg-[#111] rounded-xl p-3 flex gap-3 items-center">
+          <img src="${item.imagem}" class="w-14 h-14 md:w-20 md:h-20 object-cover rounded-lg">
+          <div class="flex-1"><h4 class="font-bold text-sm">${item.nome}</h4><p class="text-xs text-gray-400">Tam:${item.size} Qtd:${item.quantity}</p></div>
+          <div class="text-right"><p class="text-[#d4af37] font-bold">R$ ${(item.preco*item.quantity).toFixed(2)}</p>
+          <button onclick="remover(${i})" class="text-red-400 text-xs mt-1"><i class="fas fa-trash"></i></button></div>
+        </div>`).join('');
+      attTotais();
+    }
+
+    function remover(i) { carrinho.splice(i,1); localStorage.setItem('rrshoes_cart',JSON.stringify(carrinho)); renderCarrinho(); }
+    function attTotais() {
+      const sub = carrinho.reduce((s,i) => s+(i.preco*i.quantity),0);
+      const frete = sub>=299?0:29.90;
+      document.getElementById('subtotal').textContent = 'R$ '+sub.toFixed(2);
+      document.getElementById('frete-valor').textContent = frete===0?'GRÁTIS':'R$ '+frete.toFixed(2);
+      document.getElementById('total').textContent = 'R$ '+(sub+frete).toFixed(2);
+    }
+    function getTotal() { const sub=carrinho.reduce((s,i)=>s+(i.preco*i.quantity),0); const t=sub+(sub>=299?0:29.90); return pgto==='pix'?t*0.9:t; }
+
+    function mostrarStep(n) {
+      ['step-carrinho','step-cadastro','step-pagamento'].forEach((s,i) => document.getElementById(s).style.display = i+1===n?'block':'none');
+      if(n===3) document.getElementById('pg-total').textContent = 'R$ '+getTotal().toFixed(2);
+    }
+
+    function irParaCadastro() { if(carrinho.length===0){alert('Carrinho vazio!');return;} mostrarStep(2); }
+    function voltarCarrinho() { mostrarStep(1); }
+    function irParaPagamento() {
+      const nome = document.getElementById('cli-nome').value.trim();
+      const email = document.getElementById('cli-email').value.trim();
+      const cep = document.getElementById('cli-cep').value.trim();
+      const endereco = document.getElementById('cli-endereco').value.trim();
+      const numero = document.getElementById('cli-numero').value.trim();
+      if (!nome || !email) { mostrarToast('⚠️ Preencha nome e email!'); return; }
+      if (!cep || !endereco || !numero) { mostrarToast('⚠️ Preencha o endereço completo!'); return; }
+      mostrarStep(3);
+    }
+    function voltarCadastro() { mostrarStep(2); }
+
+    function selPgto(tipo,el) {
+      pgto = tipo;
+      document.querySelectorAll('.payment-option').forEach(o=>o.classList.remove('selecionado'));
+      el.classList.add('selecionado');
+      document.getElementById('cartao-campos').style.display = tipo==='cartao'?'block':'none';
+      document.getElementById('pg-total').textContent = 'R$ '+getTotal().toFixed(2);
+    }
+
+    function finalizar() {
+      const cliente = {
+        nome: document.getElementById('cli-nome').value,
+        email: document.getElementById('cli-email').value,
+        cpf: document.getElementById('cli-cpf').value,
+        tel: document.getElementById('cli-tel').value,
+        endereco: {
+          cep: document.getElementById('cli-cep').value,
+          rua: document.getElementById('cli-endereco').value,
+          numero: document.getElementById('cli-numero').value,
+          bairro: document.getElementById('cli-bairro').value,
+          cidade: document.getElementById('cli-cidade').value,
+          complemento: document.getElementById('cli-complemento').value
+        }
+      };
+      const total = getTotal();
+      const id = 'RR'+Date.now().toString(36).toUpperCase();
+      const status = pgto==='cartao'?'preparando':'aguardando';
+      
+      const pedido = { id, data: new Date().toLocaleString('pt-BR'), cliente, itens: carrinho, pagamento: pgto, total, status };
+      let pedidos = JSON.parse(localStorage.getItem('rrshoes_pedidos'))||[];
+      pedidos.push(pedido);
+      localStorage.setItem('rrshoes_pedidos',JSON.stringify(pedidos));
+      localStorage.removeItem('rrshoes_cart');
+      window.location.href = `obrigado.html?order=${id}&status=${status}&payment=${pgto}`;
+    }
+
+    function mostrarToast(m) { const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+
+    document.addEventListener('DOMContentLoaded', renderCarrinho);
+  </script>
+</body>
+</html>

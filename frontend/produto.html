@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Produto - RR_SHOEES</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { background: #0a0a0a; font-family: 'Inter', sans-serif; color: #fff; }
+    .font-display { font-family: 'Playfair Display', serif; }
+    .btn-gold { background: linear-gradient(135deg, #c9a227, #d4af37); color: #0a0a0a; font-weight: 700; transition: all 0.3s ease; border: none; cursor: pointer; }
+    .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(212,175,55,0.3); }
+    .input-dark { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 12px 16px; border-radius: 8px; }
+    .size-btn { width: 50px; height: 50px; border: 2px solid #333; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; font-weight: 600; }
+    .size-btn:hover { border-color: #d4af37; }
+    .size-btn.selected { background: #d4af37; border-color: #d4af37; color: #0a0a0a; }
+    .main-image-zoom { transition: transform 0.5s ease; }
+    .main-image-zoom:hover { transform: scale(1.5); }
+    .toast { position: fixed; bottom: 30px; right: 30px; background: #d4af37; color: #000; padding: 16px 28px; border-radius: 50px; z-index: 9999; font-weight: 700; opacity: 0; transform: translateY(20px); transition: all 0.4s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <header class="border-b border-white/5 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <a href="index.html" class="text-2xl font-bold font-display">RR<span class="text-[#d4af37]">_</span>SHOEES</a>
+      <a href="index.html" class="text-gray-400 hover:text-[#d4af37] transition"><i class="fas fa-arrow-left mr-2"></i> Voltar</a>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-12">
+    <div id="produto-conteudo" class="grid grid-cols-1 md:grid-cols-2 gap-12">
+      <div class="col-span-2 text-center py-20">
+        <i class="fas fa-spinner fa-spin text-4xl text-[#d4af37]"></i>
+        <p class="text-gray-400 mt-4">Carregando produto...</p>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="js/produtos.js"></script>
+  <script>
+    let produtoAtual = null;
+    let tamanhoSelecionado = null;
+    let carrinho = JSON.parse(localStorage.getItem('rrshoes_cart')) || [];
+
+    function carregarProduto() {
+      const params = new URLSearchParams(window.location.search);
+      const id = parseInt(params.get('id')) || 1;
+      produtoAtual = getProdutoPorId(id);
+
+      if (!produtoAtual) {
+        document.getElementById('produto-conteudo').innerHTML = '<div class="col-span-2 text-center py-20"><p class="text-gray-400">Produto não encontrado</p><a href="index.html" class="btn-gold inline-block px-8 py-3 rounded-lg mt-6">VOLTAR</a></div>';
+        return;
+      }
+
+      renderizar();
+    }
+
+    function renderizar() {
+      const p = produtoAtual;
+      const preco = p.preco_promo || p.preco;
+      const temDesconto = p.preco_promo && p.preco_promo < p.preco;
+      const desconto = temDesconto ? Math.round(((p.preco - p.preco_promo) / p.preco) * 100) : 0;
+      const estrelas = '★'.repeat(Math.floor(p.avaliacao || 5));
+      const tamanhos = p.tamanhos || [36,37,38,39,40,41,42];
+      const cores = p.cores || ['Padrão'];
+      const imagens = p.imagens || [p.imagem_principal];
+
+      document.title = p.nome + ' - RR_SHOEES';
+
+      document.getElementById('produto-conteudo').innerHTML = `
+        <div>
+          <div class="aspect-square bg-[#111] rounded-3xl overflow-hidden border border-white/5 mb-4">
+            <img src="${imagens[0]}" alt="${p.nome}" id="main-image" class="w-full h-full object-cover main-image-zoom cursor-zoom-in">
+          </div>
+          <div class="flex gap-3">
+            ${imagens.map((img, i) => `
+              <div class="w-20 h-20 rounded-xl overflow-hidden cursor-pointer border-2 ${i === 0 ? 'border-[#d4af37]' : 'border-white/5'}" onclick="trocarImagem('${img}', this)">
+                <img src="${img}" alt="Vista ${i+1}" class="w-full h-full object-cover">
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div>
+          <p class="text-sm text-gray-400 uppercase tracking-wider mb-2">${p.marca || 'RR_SHOEES'} | ${p.categoria}</p>
+          <h1 class="text-3xl md:text-4xl font-bold mb-4 font-display">${p.nome}</h1>
+          <div class="text-[#d4af37] mb-4">${estrelas} <span class="text-gray-400 text-sm">(${p.num_avaliacoes || 0} avaliações)</span></div>
+
+          <div class="mb-6">
+            <div class="flex items-center gap-4">
+              <span class="text-4xl font-bold text-[#d4af37]">R$ ${preco.toFixed(2)}</span>
+              ${temDesconto ? `<span class="text-gray-500 line-through text-xl">R$ ${p.preco.toFixed(2)}</span><span class="bg-[#d4af37] text-black px-3 py-1 rounded-full text-sm font-bold">-${desconto}%</span>` : ''}
+            </div>
+            <p class="text-sm text-gray-400 mt-2">ou 6x de R$ ${(preco/6).toFixed(2)} sem juros</p>
+          </div>
+
+          <div class="mb-4">
+            <p class="text-xs uppercase tracking-wider text-gray-400 mb-2">Tamanho:</p>
+            <div class="flex gap-2 flex-wrap">
+              ${tamanhos.map(t => `<div class="size-btn" onclick="selecionarTamanho(${t}, this)">${t}</div>`).join('')}
+            </div>
+          </div>
+
+          <button onclick="comprarAgora()" class="btn-gold w-full py-4 rounded-xl text-lg font-bold mb-6">
+            <i class="fas fa-shopping-cart mr-2"></i> COMPRAR AGORA
+          </button>
+
+          <div class="grid grid-cols-3 gap-4 text-center text-xs text-gray-400 border-t border-white/5 pt-6">
+            <div><i class="fas fa-truck text-2xl text-[#d4af37] block mb-2"></i>Frete Grátis<br>Acima de R$299</div>
+            <div><i class="fas fa-shield-alt text-2xl text-[#d4af37] block mb-2"></i>Garantia<br>90 dias</div>
+            <div><i class="fas fa-undo text-2xl text-[#d4af37] block mb-2"></i>Trocas<br>30 dias</div>
+          </div>
+
+          <div class="mt-6 border-t border-white/5 pt-6">
+            <h3 class="font-bold mb-2">Descrição</h3>
+            <p class="text-gray-400 text-sm leading-relaxed">${p.descricao || 'Produto RR_SHOEES de alta qualidade.'}</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function trocarImagem(src, el) {
+      document.getElementById('main-image').src = src;
+      document.querySelectorAll('.thumb-active')?.forEach(t => t.classList.remove('thumb-active'));
+      el.classList.add('thumb-active');
+    }
+
+    function selecionarTamanho(tam, el) {
+      tamanhoSelecionado = tam;
+      document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+
+    function comprarAgora() {
+      if (!tamanhoSelecionado) {
+        mostrarToast('⚠️ Selecione um tamanho!');
+        return;
+      }
+
+      const existente = carrinho.find(i => i.id === produtoAtual.id && i.size === tamanhoSelecionado);
+      if (existente) {
+        existente.quantity++;
+      } else {
+        carrinho.push({
+          id: produtoAtual.id,
+          nome: produtoAtual.nome,
+          preco: produtoAtual.preco_promo || produtoAtual.preco,
+          imagem: produtoAtual.imagem_principal,
+          size: tamanhoSelecionado,
+          color: 'Padrão',
+          quantity: 1
+        });
+      }
+
+      localStorage.setItem('rrshoes_cart', JSON.stringify(carrinho));
+      window.location.href = 'checkout.html';
+    }
+
+    function mostrarToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    document.addEventListener('DOMContentLoaded', carregarProduto);
+  </script>
+</body>
+</html>

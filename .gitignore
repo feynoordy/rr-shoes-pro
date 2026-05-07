@@ -1,0 +1,21 @@
+# Dependências
+node_modules/
+
+# Arquivos de ambiente (podem conter senhas)
+.env
+
+# Banco de dados SQLite
+*.sqlite
+
+# Uploads de imagens (se houver)
+public/uploads/
+
+# Arquivos de backup
+*.bak
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
